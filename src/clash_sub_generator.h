@@ -17,7 +17,7 @@ public:
     static std::string version();
 
 private:
-    YAML::Node generate_configuration(const YAML::Node &node);
+    YAML::Node generate_configuration(const YAML::Node &node, const YAML::Node &preferred_group);
 
     YAML::Node get_config(const std::string &filename, const std::string &repository_filename);
 
