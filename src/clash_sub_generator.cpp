@@ -107,12 +107,14 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node) {
     YAMLHelper::node_merger(rules, yaml_template["rules"]);
     YAMLHelper::node_merger(node["groups"], yaml_template["proxy-groups"]);
 
+    bool anchor_replaced = false;
     std::string anchor = "__ANCHOR__";
     auto proxy_name = config.provider_name.empty() ? "Generated" : config.provider_name;
     for (auto group : yaml_template["proxy-groups"]) {
         if (group["name"].as<std::string>() == anchor) {
             group["name"] = proxy_name;
             group["proxies"] = node["group_name"];
+            anchor_replaced = true;
             continue;
         }
 
@@ -124,6 +126,15 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node) {
                 continue;
             }
         }
+    }
+
+    // insert node when no anchor defined
+    if (!anchor_replaced) {
+        auto group_node = YAML::Node();
+        group_node["name"] = YAML::Node(proxy_name);
+        group_node["type"] = YAML::Node("select");
+        group_node["proxies"] = node["group_name"];
+        yaml_template["proxy-groups"].push_back(group_node);
     }
 
     return yaml_template;

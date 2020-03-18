@@ -25,7 +25,7 @@ private:
 
     YAML::Node create_emoji_map(const std::string &provider_name);
 
-    void legacy_syntax_converter(const YAML::Node &node);
+    static void legacy_syntax_converter(const YAML::Node &node);
 private:
     const Config &config;
 
