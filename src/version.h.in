@@ -1,0 +1,13 @@
+//
+// Created by Kotarou on 2020/3/15.
+//
+
+#ifndef CSG_VERSION_H
+#define CSG_VERSION_H
+
+constexpr int CSG_MAJOR = @CSG_VERSION_MAJOR@;
+constexpr int CSG_MINOR = @CSG_VERSION_MINOR@;
+constexpr int CSG_PATCH = @CSG_VERSION_PATCH@;
+constexpr char CSG_RELEASE_INFO[] = "@CSG_RELEASE_INFO@";
+
+#endif //CSG_VERSION_H
