@@ -41,10 +41,11 @@ include_directories(${OPENSSL_INCLUDE_DIRS})
 # optional
 include(LoadOptional)
 LOAD_OPTIONAL(Yaml-cpp yaml-cpp)
-LOAD_OPTIONAL(spdlog spdlog)
 LOAD_OPTIONAL(fmt fmt)
 
 # submodules
+set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
+add_subdirectory(deps/spdlog)
 add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
 add_subdirectory(deps/cpp-httplib)
 add_subdirectory(deps/CLI11)
