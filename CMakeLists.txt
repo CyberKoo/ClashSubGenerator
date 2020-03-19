@@ -55,8 +55,9 @@ set(RuleExtractor src/rule_extractor.cpp src/rule_extractor.h)
 set(ProxyGenerator src/proxy_generator.cpp src/proxy_generator.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
+set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
-set(ClashSubGenerator src/clash_sub_generator.cpp src/clash_sub_generator.h src/exception/invalid_yaml_excaption.h)
+set(ClashSubGenerator src/clash_sub_generator.cpp src/clash_sub_generator.h src/exception/invalid_yaml_excaption.h src/base64.cpp src/base64.h)
 
 add_executable(ClashSubGenerator
         src/main.cpp
@@ -69,6 +70,7 @@ add_executable(ClashSubGenerator
         ${ProxyGenerator}
         ${YAMLHelper}
         ${utils}
+        ${base64}
         ${Exceptions}
         )
 target_link_libraries(ClashSubGenerator yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto)
