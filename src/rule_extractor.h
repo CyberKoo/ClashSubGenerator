@@ -17,9 +17,8 @@ public:
 
     size_t count() const;
 
-    std::set<std::string> required_proxies();
+    std::set<std::string> get_required_proxies();
 
-private:
 private:
     YAML::Node rules;
 };

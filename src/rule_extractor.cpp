@@ -15,16 +15,17 @@ size_t RuleExtractor::count() const {
     return rules.size();
 }
 
-std::set<std::string> RuleExtractor::required_proxies() {
+std::set<std::string> RuleExtractor::get_required_proxies() {
     std::set<std::string> proxy_name;
     for (auto entity : rules) {
         auto split = Utils::split(entity.as<std::string>(), ',');
         proxy_name.emplace(split.back());
     }
 
-    proxy_name.erase("no-resolve");
-    proxy_name.erase("Final");
-    proxy_name.erase("DIRECT");
+    const char reserved_keywords[][11] = {"no-resolve", "Final", "DIRECT", "REJECT", "MATCH"};
+    for (const auto &key:reserved_keywords) {
+        proxy_name.erase(key);
+    }
 
     return proxy_name;
 }
