@@ -45,7 +45,7 @@ void ProxyGenerator::grouping(size_t group_min_size) {
             // write attributes to proxy
             append_attributes(attribute, proxy);
 
-            if (attribute.amplification > 1.0) {
+            if (exclude_amplified_node && attribute.amplification > 1.0) {
                 spdlog::debug("Proxy {} excluded, because the amplification is {}", proxy_name,
                               attribute.amplification);
                 continue;
