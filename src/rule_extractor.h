@@ -1,5 +1,5 @@
 //
-// Created by Dafan Wang on 2020/3/16.
+// Created by Kotarou on 2020/3/16.
 //
 
 #ifndef CLASHSUBGENERATOR_RULE_EXTRACTOR_H

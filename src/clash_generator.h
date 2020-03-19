@@ -2,10 +2,11 @@
 // Created by Kotarou on 2020/3/15.
 //
 
-#ifndef CLASHSUBGENERATOR_CLASH_SUB_GENERATOR_H
-#define CLASHSUBGENERATOR_CLASH_SUB_GENERATOR_H
+#ifndef CLASHSUBGENERATOR_CLASH_GENERATOR_H
+#define CLASHSUBGENERATOR_CLASH_GENERATOR_H
 
 #include <yaml-cpp/yaml.h>
+#include "subscriber.h"
 #include "config.h"
 
 class ClashSubGenerator {
@@ -25,11 +26,16 @@ private:
 
     YAML::Node create_emoji_map(const std::string &provider_name);
 
+    std::unique_ptr<Subscriber> get_subscriber();
+
     static void legacy_syntax_converter(const YAML::Node &node);
+
+    static std::vector<std::string> get_all_proxies_name(const YAML::Node &node);
+
 private:
     const Config &config;
 
     YAML::Node system_config;
 };
 
-#endif //CLASHSUBGENERATOR_CLASH_SUB_GENERATOR_H
+#endif //CLASHSUBGENERATOR_CLASH_GENERATOR_H

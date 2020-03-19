@@ -16,8 +16,15 @@ enum class Generator {
     PROVIDER
 };
 
+enum class SubscribeType {
+    CLASH,
+    V2RAY,
+    SS
+};
+
 struct Config {
     std::string subscribe_url;
+    SubscribeType subscribe_type;
     std::string provider_name;
     std::string rules_uri;
     std::string output;

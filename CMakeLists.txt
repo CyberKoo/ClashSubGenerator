@@ -52,12 +52,15 @@ add_subdirectory(deps/CLI11)
 file(GLOB_RECURSE Exceptions "src/exception/*.h")
 set(utils src/utils.cpp src/utils.h)
 set(RuleExtractor src/rule_extractor.cpp src/rule_extractor.h)
-set(ProxyGenerator src/proxy_generator.cpp src/proxy_generator.h)
+set(Subscriber src/subscriber.cpp src/subscriber.h)
+set(ClashSubscriber src/clash_subscriber.cpp src/clash_subscriber.h)
+set(V2raySubscriber src/v2ray_subscriber.cpp src/v2ray_subscriber.h)
+set(ShadowsocksSubscriber src/shadowsocks_subscriber.cpp src/shadowsocks_subscriber.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
 set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
-set(ClashSubGenerator src/clash_sub_generator.cpp src/clash_sub_generator.h src/exception/invalid_yaml_excaption.h src/base64.cpp src/base64.h)
+set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h)
 
 add_executable(ClashSubGenerator
         src/main.cpp
@@ -65,12 +68,15 @@ add_executable(ClashSubGenerator
         src/version.h
         ${URI}
         ${HttpClient}
-        ${ClashSubGenerator}
         ${RuleExtractor}
-        ${ProxyGenerator}
+        ${Subscriber}
+        ${ClashSubscriber}
+        ${V2raySubscriber}
+        ${ShadowsocksSubscriber}
         ${YAMLHelper}
         ${utils}
         ${base64}
         ${Exceptions}
+        ${ClashSubGenerator}
         )
 target_link_libraries(ClashSubGenerator yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto)

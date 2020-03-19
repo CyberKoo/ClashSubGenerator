@@ -1,25 +1,18 @@
 //
-// Created by Kotarou on 2020/3/16.
+// Created by Kotarou on 2020/3/19.
 //
 
 #include <spdlog/spdlog.h>
+#include "subscriber.h"
 
-#include "proxy_generator.h"
-#include "yaml_helper.h"
-
-ProxyGenerator::ProxyGenerator() {
+Subscriber::Subscriber() {
     this->enable_grouping = false;
     this->exclude_amplified_node = false;
 }
 
-void ProxyGenerator::load(const std::string &uri) {
-    auto yaml = YAMLHelper::load_remote(uri);
-    auto proxy_key_name = YAMLHelper::search_key(yaml, {"Proxy", "proxies"});
-    proxies = yaml[proxy_key_name];
-    spdlog::info("Total number of proxies loaded {}", proxies.size());
-}
+Subscriber::~Subscriber() = default;
 
-void ProxyGenerator::grouping(size_t group_min_size) {
+void Subscriber::grouping(size_t group_min_size) {
     auto netflix = node_vector();
     auto leftover = node_vector();
 
@@ -106,41 +99,7 @@ void ProxyGenerator::grouping(size_t group_min_size) {
     }
 }
 
-std::string ProxyGenerator::name2emoji(const std::string &name) {
-    if (emoji_map[name].IsDefined()) {
-        return emoji_map[name].as<std::string>();
-    }
-
-    spdlog::info("No emoji defined for {}", name);
-
-    return name;
-}
-
-ProxyGenerator::NameAttribute ProxyGenerator::parse_name(const std::string &name) {
-    NameAttribute attribute{};
-    std::smatch match;
-    if (std::regex_match(name, match, name_parser)) {
-        spdlog::trace("Name {}, total number of matches are {}", name, match.size());
-
-        auto get_definition = [&](const std::string &key_name) {
-            return provider["definition"][key_name].as<int>();
-        };
-
-        // do have mapper
-        if (provider["definition"].IsDefined()) {
-            auto amp = match[get_definition("amplification")].str();
-            auto id_def = get_definition("position");
-            attribute.location = match[get_definition("location_name")].str();
-            attribute.id = (id_def != -1) ? std::stoi(match[id_def].str()) : -1;
-            attribute.netflix = !match[get_definition("netflix")].str().empty();
-            attribute.amplification = amp.empty() ? 1.0f : std::stof(amp);
-        }
-    }
-
-    return attribute;
-}
-
-YAML::Node ProxyGenerator::get_yaml(bool use_emoji) {
+YAML::Node Subscriber::get_yaml(bool use_emoji) {
     auto node = YAML::Node();
 
     node["groups"] = YAML::Node(YAML::NodeType::Sequence);
@@ -176,23 +135,23 @@ YAML::Node ProxyGenerator::get_yaml(bool use_emoji) {
                 };
 
                 if (proxy.IsDefined() && proxy.IsMap()) {
-                    auto local_proxy = YAML::Clone(proxy);
-                    std::string proxy_name = local_proxy["name"].as<std::string>();
+                    auto proxy_ref = proxy;
+                    std::string proxy_name = proxy_ref["name"].as<std::string>();
                     spdlog::trace("Add proxy {} to group {}", proxy_name, group_name);
 
                     // only update name when grouping is enabled
-                    if (local_proxy["attributes"].IsDefined()) {
-                        proxy_name = name_generator(local_proxy["attributes"]);
-                        local_proxy["name"] = proxy_name;
+                    if (proxy_ref["attributes"].IsDefined()) {
+                        proxy_name = name_generator(proxy_ref["attributes"]);
+                        proxy_ref["name"] = proxy_name;
                     }
 
                     // do not append duplicated proxy
                     if (group.first != "netflix") {
-                        node["proxies"].push_back(local_proxy);
+                        node["proxies"].push_back(proxy_ref);
                     }
                     group_content["proxies"].push_back(proxy_name);
                     // strip attributes
-                    local_proxy.remove("attributes");
+                    proxy_ref.remove("attributes");
                 }
             }
         }
@@ -201,7 +160,47 @@ YAML::Node ProxyGenerator::get_yaml(bool use_emoji) {
     return node;
 }
 
-void ProxyGenerator::append_attributes(const ProxyGenerator::NameAttribute &attribute, YAML::Node &node) {
+std::string Subscriber::name2emoji(const std::string &name) {
+    if (emoji_map[name].IsDefined()) {
+        return emoji_map[name].as<std::string>();
+    }
+
+    spdlog::info("No emoji defined for {}", name);
+
+    return name;
+}
+
+Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
+    std::smatch match;
+    NameAttribute attribute{.location = name, .id = -1, .netflix = false, .amplification = 1.0f};
+    if (std::regex_match(name, match, name_parser)) {
+        spdlog::trace("Name {}, total number of matches are {}", name, match.size());
+
+        auto get_value = [&](const std::string &key_name, const std::string &default_value) {
+            auto def_index = provider["definition"][key_name].as<int>();
+            if (def_index != -1) {
+                return match[def_index].str();
+            }
+
+            return default_value;
+        };
+
+        // do have mapper
+        if (provider["definition"].IsDefined()) {
+            attribute.location = get_value("location_name", "");
+            if (!attribute.location.empty()) {
+                attribute.id = std::stoi(get_value("position", "-1"));
+                attribute.netflix = !get_value("netflix", "").empty();
+                auto amplification = get_value("amplification", "1.0f");
+                attribute.amplification = std::stof(amplification.empty() ? "1.0f" : amplification);
+            }
+        }
+    }
+
+    return attribute;
+}
+
+void Subscriber::append_attributes(const Subscriber::NameAttribute &attribute, YAML::Node &node) {
     node["attributes"] = YAML::Node(YAML::NodeType::Map);
     node["attributes"].force_insert("location", attribute.location);
     node["attributes"].force_insert("id", attribute.id);
@@ -209,22 +208,22 @@ void ProxyGenerator::append_attributes(const ProxyGenerator::NameAttribute &attr
     node["attributes"].force_insert("amplification", attribute.amplification);
 }
 
-void ProxyGenerator::set_grouping(bool flag) {
+void Subscriber::set_grouping(bool flag) {
     this->enable_grouping = flag;
 }
 
-void ProxyGenerator::set_provider(const YAML::Node &_provider) {
+void Subscriber::set_provider(const YAML::Node &_provider) {
     this->provider = _provider;
 }
 
-void ProxyGenerator::set_emoji_map(const YAML::Node &_emoji_map) {
+void Subscriber::set_emoji_map(const YAML::Node &_emoji_map) {
     this->emoji_map = _emoji_map;
 }
 
-void ProxyGenerator::set_exclude_amplified_node(bool flag) {
+void Subscriber::set_exclude_amplified_node(bool flag) {
     this->exclude_amplified_node = flag;
 }
 
-void ProxyGenerator::set_name_parser(const std::string &pattern) {
+void Subscriber::set_name_parser(const std::string &pattern) {
     this->name_parser = std::regex(pattern, std::regex_constants::icase);
 }
