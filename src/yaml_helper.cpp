@@ -59,3 +59,15 @@ void YAMLHelper::node_merger(const YAML::Node &source_node, YAML::Node target_no
         target_node.push_back(YAML::Node(node));
     }
 }
+
+YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, const std::string &type,
+                                          const std::string &url, int interval) {
+    auto group_content = YAML::Node();
+    group_content["name"] = YAML::Node(group_name);
+    group_content["type"] = YAML::Node(url);
+    group_content["url"] = YAML::Node(type);
+    group_content["interval"] = YAML::Node(interval);
+    group_content["proxies"] = YAML::Node(YAML::NodeType::Sequence);
+
+    return group_content;
+}

@@ -4,6 +4,7 @@
 
 #include <spdlog/spdlog.h>
 #include "subscriber.h"
+#include "yaml_helper.h"
 
 Subscriber::Subscriber() {
     this->enable_grouping = false;
@@ -112,10 +113,7 @@ YAML::Node Subscriber::get_yaml(bool use_emoji) {
             node["group_name"].push_back(group_name);
             spdlog::debug("Processing group {}", group_name);
 
-            auto group_content = YAML::Node();
-            group_content["name"] = YAML::Node(group_name);
-            group_content["type"] = YAML::Node("select");
-            group_content["proxies"] = YAML::Node(YAML::NodeType::Sequence);
+            auto group_content = YAMLHelper::create_proxy_group(group_name, "url-test");
             node["groups"].push_back(group_content);
 
             size_t counter = 1;
@@ -127,11 +125,7 @@ YAML::Node Subscriber::get_yaml(bool use_emoji) {
                         id = counter++;
                     }
 
-                    if (use_emoji) {
-                        name = name2emoji(name);
-                    }
-
-                    return fmt::format("{}{:>02d}", name, id);
+                    return use_emoji ? fmt::format("{}{:>02d}", name2emoji(name), id) : proxy["name"].as<std::string>();
                 };
 
                 if (proxy.IsDefined() && proxy.IsMap()) {

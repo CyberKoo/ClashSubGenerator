@@ -13,6 +13,9 @@ namespace YAMLHelper {
 
     YAML::Node load_local(const std::string &path);
 
+    YAML::Node create_proxy_group(const std::string &group_name, const std::string &type = "select",
+                                  const std::string &url = "https://www.bing.com", int interval = 120);
+
     void write_yaml(const YAML::Node &node, const std::string &file);
 
     std::string search_key(const YAML::Node &node, const std::vector<std::string> &keys);

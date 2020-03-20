@@ -156,9 +156,7 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     // insert node when no anchor defined
     if (!anchor_replaced) {
         spdlog::debug("Anchor group not found, insert generated group to the end");
-        auto group_node = YAML::Node();
-        group_node["name"] = YAML::Node(anchor_group_name);
-        group_node["type"] = YAML::Node("select");
+        auto group_node = YAMLHelper::create_proxy_group(anchor_group_name);
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
     }
