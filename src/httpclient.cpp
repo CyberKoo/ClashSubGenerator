@@ -8,8 +8,8 @@
 #include "httpclient.h"
 #include "utils.h"
 
-std::shared_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
-    std::shared_ptr<httplib::Client> client;
+std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
+    std::unique_ptr<httplib::Client> client;
     if (uri.Protocol == "http") {
         client = get_http_client(uri.Host, uri.Port);
     } else if (uri.Protocol == "https") {
@@ -38,12 +38,12 @@ std::string HttpClient::get(const std::string &uri) {
     }
 }
 
-std::shared_ptr<httplib::Client> HttpClient::get_http_client(const std::string &host, int port) {
-    return std::make_shared<httplib::Client>(host, port);
+std::unique_ptr<httplib::Client> HttpClient::get_http_client(const std::string &host, int port) {
+    return std::make_unique<httplib::Client>(host, port);
 }
 
-std::shared_ptr<httplib::Client> HttpClient::get_https_client(const std::string &host, int port) {
-    auto client = std::make_shared<httplib::SSLClient>(host, port);
+std::unique_ptr<httplib::Client> HttpClient::get_https_client(const std::string &host, int port) {
+    auto client = std::make_unique<httplib::SSLClient>(host, port);
     auto ca_path = get_ca_path();
 
     if (!ca_path.empty()) {

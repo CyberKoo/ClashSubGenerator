@@ -10,14 +10,14 @@
 
 class HttpClient {
 public:
-    static std::shared_ptr<httplib::Client> connect(const Uri &uri);
+    static std::unique_ptr<httplib::Client> connect(const Uri &uri);
 
     static std::string get(const std::string &uri);
 
 private:
-    static std::shared_ptr<httplib::Client> get_http_client(const std::string &host, int port);
+    static std::unique_ptr<httplib::Client> get_http_client(const std::string &host, int port);
 
-    static std::shared_ptr<httplib::Client> get_https_client(const std::string &host, int port);
+    static std::unique_ptr<httplib::Client> get_https_client(const std::string &host, int port);
 
     static std::string get_ca_path();
 };
