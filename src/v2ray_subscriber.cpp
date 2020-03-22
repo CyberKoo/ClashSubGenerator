@@ -18,8 +18,10 @@ void V2raySubscriber::load(const std::string &uri) {
 
     for (const auto &proxy_config: remote_proxies) {
         try {
-            proxies.push_back(generate_proxy(proxy_config));
-        } catch (UnsupportedConfiguration &e) {
+            if (!proxy_config.empty()) {
+                proxies.push_back(generate_proxy(proxy_config));
+            }
+        } catch (CSGRuntimeException &e) {
             spdlog::warn("Skipped adding proxy {}, due to {}", proxy_config, e.what());
         }
     }
@@ -35,13 +37,16 @@ std::vector<std::string> V2raySubscriber::decode_config(const std::string &confi
     for (auto &proxy: proxy_list) {
         // strip vmess:// prefix
         Utils::replace(proxy, {{"vmess://", ""}});
+        Utils::trim(proxy);
 
-        // decode again
-        auto decoded_proxy = base64::decode(proxy);
-        if (!decoded_proxy.empty()) {
-            proxy = std::string(decoded_proxy.begin(), decoded_proxy.end());
-        } else {
-            spdlog::error("failed to decode string {}", proxy);
+        if (!proxy.empty()) {
+            // decode again
+            auto decoded_proxy = base64::decode(proxy);
+            if (!decoded_proxy.empty()) {
+                proxy = std::string(decoded_proxy.begin(), decoded_proxy.end());
+            } else {
+                spdlog::error("Failed to decode string {}", proxy);
+            }
         }
     }
 
@@ -56,8 +61,7 @@ YAML::Node V2raySubscriber::generate_proxy(const std::string &config) {
             {"server",  "add"},
             {"port",    "port"},
             {"alterId", "aid"},
-            {"uuid",    "id"},
-            {"network", "net"},
+            {"uuid",    "id"}
     };
 
     // check spoof type
@@ -76,14 +80,15 @@ YAML::Node V2raySubscriber::generate_proxy(const std::string &config) {
         if (network_str == "ws" || network_str == "tcp") {
             // do i need ws-headers?
             if (network_str == "ws" && yaml["host"].IsDefined()) {
+                proxy["network"] = "ws";
                 proxy["ws-headers"] = YAML::Node(YAML::NodeType::Sequence);
                 proxy["ws-headers"]["Host"] = yaml["host"].as<std::string>();
             }
         } else {
-            throw UnsupportedConfiguration(fmt::format("Network type {} is not supported by clash yet"));
+            throw UnsupportedConfiguration(fmt::format("Network type \"{}\" is not supported by clash yet"));
         }
     } else {
-        throw MissingKeyException(fmt::format("Required key {} is missing", "net"));
+        throw MissingKeyException(fmt::format("Required key \"{}\" is missing", "net"));
     }
 
     // automatic mapping according to the predefined map
@@ -92,7 +97,7 @@ YAML::Node V2raySubscriber::generate_proxy(const std::string &config) {
         if (yaml[pair.second].IsDefined() && yaml[pair.second].IsScalar()) {
             proxy[pair.first] = Utils::trim_copy(yaml[pair.second].as<std::string>());
         } else {
-            throw MissingKeyException(fmt::format("Required key {} is missing", pair.second));
+            throw MissingKeyException(fmt::format("Required key \"{}\" is missing", pair.second));
         }
     }
 
