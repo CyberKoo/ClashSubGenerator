@@ -5,8 +5,10 @@
 #include <spdlog/spdlog.h>
 #include "subscriber.h"
 #include "yaml_helper.h"
+#include "utils.h"
 
 Subscriber::Subscriber() {
+    this->regex_collapse = false;
     this->enable_grouping = false;
     this->exclude_amplified_node = false;
 }
@@ -31,6 +33,8 @@ void Subscriber::grouping(size_t group_min_size) {
         spdlog::info("Grouping proxies by name, minimum size for a group is {}", group_min_size);
         // grouping
         for (auto proxy : proxies) {
+            // trim proxy name
+            proxy["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
             auto proxy_name = proxy["name"].as<std::string>();
             auto attribute = parse_name(proxy_name);
             spdlog::trace("proxy name: {}, id: {}, netflix: {}, amplification: {}",
@@ -84,7 +88,9 @@ void Subscriber::grouping(size_t group_min_size) {
         map_cleaner();
     } else {
         spdlog::info("Grouping proxy is disabled");
-        for (const auto &proxy : proxies) {
+        for (auto proxy : proxies) {
+            // trim proxy name
+            proxy["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
             leftover.emplace_back(proxy);
         }
     }
@@ -169,17 +175,18 @@ Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
     NameAttribute attribute{.location = name, .id = -1, .netflix = false, .amplification = 1.0f};
     if (std::regex_match(name, match, name_parser)) {
         spdlog::trace("Name {}, total number of matches are {}", name, match.size());
+        auto regex_result = get_regex_result(match);
 
         auto get_value = [&](const std::string &key_name, const std::string &default_value) {
             auto def_index = provider["definition"][key_name].as<int>();
-            if (def_index != -1) {
-                return match[def_index].str();
+            if (def_index != -1 && static_cast<long>(regex_result.size()) > def_index) {
+                return regex_result[def_index];
             }
 
             return default_value;
         };
 
-        // do have mapper
+        // do have an emoji mapper
         if (provider["definition"].IsDefined()) {
             attribute.location = get_value("location_name", "");
             if (!attribute.location.empty()) {
@@ -202,6 +209,22 @@ void Subscriber::append_attributes(const Subscriber::NameAttribute &attribute, Y
     node["attributes"].force_insert("amplification", attribute.amplification);
 }
 
+std::vector<std::string> Subscriber::get_regex_result(const std::smatch &result) {
+    std::vector<std::string> regex_result;
+    std::transform(result.begin(), result.end(), std::back_inserter(regex_result), [](const auto &m) {
+        return m.str();
+    });
+
+    if (regex_collapse) {
+        auto it = std::remove_if(regex_result.begin(), regex_result.end(), [](const auto &m) {
+            return m.empty();
+        });
+        regex_result.erase(it, regex_result.end());
+    }
+
+    return regex_result;
+}
+
 void Subscriber::set_grouping(bool flag) {
     this->enable_grouping = flag;
 }
@@ -218,6 +241,10 @@ void Subscriber::set_exclude_amplified_node(bool flag) {
     this->exclude_amplified_node = flag;
 }
 
+void Subscriber::set_regex_collapse(bool flag) {
+    this->regex_collapse = flag;
+}
+
 void Subscriber::set_name_parser(const std::string &pattern) {
-    this->name_parser = std::regex(pattern, std::regex_constants::icase);
+    this->name_parser = std::regex(pattern, std::regex_constants::icase | std::regex_constants::ECMAScript);
 }

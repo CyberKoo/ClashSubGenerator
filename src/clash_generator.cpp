@@ -3,7 +3,6 @@
 //
 #include <version.h>
 #include <algorithm>
-
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
@@ -35,6 +34,9 @@ void ClashSubGenerator::run() {
             subscriber->set_grouping(config.enable_grouping);
             subscriber->set_emoji_map(create_emoji_map(config.provider_name));
             subscriber->set_name_parser(provider["regex"].as<std::string>());
+            if (provider["regex_collapse"].IsDefined()) {
+                subscriber->set_regex_collapse(provider["regex_collapse"].as<bool>());
+            }
             spdlog::info("Provider is set to {}", config.provider_name);
         } else {
             spdlog::warn("Provider {} is not defined in the config file, name2emoji may not work properly.",

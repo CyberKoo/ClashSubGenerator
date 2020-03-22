@@ -23,15 +23,17 @@ public:
 
     virtual YAML::Node get_yaml(bool use_emoji);
 
-    virtual void set_provider(const YAML::Node &_provider);
+    void set_provider(const YAML::Node &_provider);
 
-    virtual void set_emoji_map(const YAML::Node &_emoji_map);
+    void set_emoji_map(const YAML::Node &_emoji_map);
 
-    virtual void set_name_parser(const std::string &pattern);
+    void set_name_parser(const std::string &pattern);
 
-    virtual void set_exclude_amplified_node(bool flag);
+    void set_exclude_amplified_node(bool flag);
 
-    virtual void set_grouping(bool flag);
+    void set_grouping(bool flag);
+
+    void set_regex_collapse(bool flag);
 
 protected:
     struct NameAttribute {
@@ -40,6 +42,8 @@ protected:
         bool netflix;
         float amplification;
     };
+
+    std::vector<std::string> get_regex_result(const std::smatch &result);
 
     NameAttribute parse_name(const std::string &name);
 
@@ -52,6 +56,7 @@ protected:
     YAML::Node provider;
     YAML::Node emoji_map;
     std::regex name_parser;
+    bool regex_collapse;
     bool enable_grouping;
     bool exclude_amplified_node;
     std::map<std::string, node_vector> group_result;
