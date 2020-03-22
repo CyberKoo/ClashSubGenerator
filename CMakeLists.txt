@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 project(ClashSubGenerator)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -46,7 +46,8 @@ LOAD_OPTIONAL(fmt fmt)
 # submodules
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
 add_subdirectory(deps/spdlog)
-add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
+add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT)
+#add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
 add_subdirectory(deps/cpp-httplib)
 add_subdirectory(deps/CLI11)
 
