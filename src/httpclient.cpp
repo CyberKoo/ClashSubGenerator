@@ -2,6 +2,7 @@
 // Created by Kotarou on 2020/3/15.
 //
 #include <spdlog/spdlog.h>
+#include <version.h>
 
 #include "exception/invalid_http_status_exception.h"
 #include "exception/request_failure_exception.h"
@@ -25,7 +26,12 @@ std::string HttpClient::get(const std::string &uri) {
     spdlog::debug("Fetch uri {}", uri);
     auto parse_result = Uri::Parse(uri);
     auto client = HttpClient::connect(parse_result);
-    auto response = client->Get(fmt::format("{}{}", parse_result.Path, parse_result.QueryString).c_str());
+    auto response = client->Get(fmt::format("{}{}", parse_result.Path, parse_result.QueryString).c_str(),
+                                {{"User-Agent",
+                                         fmt::format("ClashSubGenerator/{0}.{1}.{2}-{3}",
+                                                     CSG_MAJOR, CSG_MINOR, CSG_PATCH, CSG_RELEASE_INFO)
+                                 }}
+    );
 
     if (response) {
         if (response->status == 200) {
