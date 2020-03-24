@@ -6,6 +6,7 @@
 #define CLASHSUBGENERATOR_UTILS_H
 
 #include <map>
+#include <ctime>
 #include <vector>
 
 namespace Utils {
@@ -22,6 +23,10 @@ namespace Utils {
     std::string trim_copy(std::string s);
 
     std::string str_tolower(std::string s);
+
+    std::string get_time(const std::string &format, const std::time_t &timestamp);
+
+    std::string get_time(const std::string &format);
 
     bool file_exists(const std::string &name);
 

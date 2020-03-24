@@ -30,6 +30,19 @@ std::vector<std::string> Utils::split(const std::string &s, char delim) {
     return elements;
 }
 
+std::string Utils::get_time(const std::string &format, const std::time_t &timestamp) {
+    char buffer[100];
+    if (std::strftime(buffer, sizeof(buffer), format.c_str(), std::localtime(&timestamp))) {
+        return buffer;
+    }
+
+    return "";
+}
+
+std::string Utils::get_time(const std::string &format) {
+    return Utils::get_time(format, std::time(nullptr));
+}
+
 // from https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 // trim from start (in place)
 void Utils::ltrim(std::string &s) {
