@@ -27,11 +27,7 @@ std::string HttpClient::get(const std::string &uri) {
     auto parse_result = Uri::Parse(uri);
     auto client = HttpClient::connect(parse_result);
     auto response = client->Get(fmt::format("{}{}", parse_result.Path, parse_result.QueryString).c_str(),
-                                {{"User-Agent",
-                                         fmt::format("ClashSubGenerator/{0}.{1}.{2}-{3}",
-                                                     CSG_MAJOR, CSG_MINOR, CSG_PATCH, CSG_RELEASE_INFO)
-                                 }}
-    );
+                                {{"User-Agent", get_user_agent()}});
 
     if (response) {
         if (response->status == 200) {
@@ -63,17 +59,15 @@ std::unique_ptr<httplib::Client> HttpClient::get_https_client(const std::string 
 std::string HttpClient::get_ca_path() {
     static std::string path;
     static bool inited = false;
-    static const std::vector<std::string> search_path(
-            {
-                    "/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
-                    "/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
-                    "/etc/ssl/ca-bundle.pem",                            // OpenSUSE
-                    "/etc/pki/tls/cacert.pem",                           // OpenELEC
-                    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
-                    "/usr/local/etc/openssl/cert.pem",                   // MacOS via Homebrew
-                    "./cacert.pem"                                       // Local
-            }
-    );
+    static const std::vector<std::string> search_path{
+            "/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
+            "/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
+            "/etc/ssl/ca-bundle.pem",                            // OpenSUSE
+            "/etc/pki/tls/cacert.pem",                           // OpenELEC
+            "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
+            "/usr/local/etc/openssl/cert.pem",                   // MacOS via Homebrew
+            "./cacert.pem"                                       // Load local
+    };
 
     // search
     if (path.empty() && !inited) {
@@ -91,4 +85,8 @@ std::string HttpClient::get_ca_path() {
     }
 
     return path;
+}
+
+std::string HttpClient::get_user_agent() {
+    return fmt::format("ClashSubGenerator/{0}.{1}.{2}-{3}", CSG_MAJOR, CSG_MINOR, CSG_PATCH, CSG_RELEASE_INFO);
 }

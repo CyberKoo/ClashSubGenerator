@@ -20,6 +20,8 @@ private:
     static std::unique_ptr<httplib::Client> get_https_client(const std::string &host, int port);
 
     static std::string get_ca_path();
+
+    static std::string get_user_agent();
 };
 
 #endif //CLASHSUBGENERATOR_HTTPCLIENT_H
