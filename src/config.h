@@ -12,14 +12,11 @@ enum class Syntax {
 };
 
 enum class Generator {
-    CONFIG,
-    PROVIDER
+    CONFIG, PROVIDER
 };
 
 enum class SubscribeType {
-    CLASH,
-    V2RAY,
-    SS
+    CLASH, V2RAY, SS
 };
 
 struct Config {
