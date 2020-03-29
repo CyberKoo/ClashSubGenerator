@@ -49,7 +49,7 @@ base64::container_type base64::decode(const std::string &data) {
     BIO_push(base64.get(), source);
 
     // pre calculated max length
-    const auto maxlen = strlen(data.c_str()) / 4 * 3 + 1;
+    const auto maxlen = data.size() / 4 * 3 + 1;
 
     // reserve space
     base64::container_type decoded(maxlen);
