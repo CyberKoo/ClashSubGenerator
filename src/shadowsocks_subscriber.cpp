@@ -9,11 +9,10 @@
 #include "shadowsocks_subscriber.h"
 #include "exception/unsupported_configuration.h"
 
-std::vector<std::string> decode_config(const std::string &config);
-
 void ShadowsocksSubscriber::load(const std::string &uri) {
     throw UnsupportedConfiguration("Shadowsocks is not supported yet");
 }
 
 std::vector<std::string> decode_config(const std::string &config) {
+    return std::vector<std::string>();
 }
