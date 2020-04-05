@@ -22,6 +22,8 @@ public:
     int getPort() const;
 
 private:
+    Uri() = default;
+
     std::string QueryString;
     std::string Path;
     std::string Protocol;

@@ -10,28 +10,25 @@
 
 Uri Uri::Parse(const std::string &uri) {
     Uri result;
-
-    typedef std::string::const_iterator iterator_t;
-
-    if (uri.length() == 0)
+    
+    if (uri.empty())
         return result;
 
-    iterator_t uriEnd = uri.end();
-
     // get query start
-    iterator_t queryStart = std::find(uri.begin(), uriEnd, '?');
+    auto queryStart = std::find(uri.begin(), uri.end(), '?');
 
     // protocol
-    iterator_t protocolStart = uri.begin();
-    iterator_t protocolEnd = std::find(protocolStart, uriEnd, ':');
+    auto protocolStart = uri.begin();
+    auto protocolEnd = std::find(protocolStart, uri.end(), ':');
 
-    if (protocolEnd != uriEnd) {
+    if (protocolEnd != uri.end()) {
         std::string port = &*(protocolEnd);
         if ((port.length() > 3) && (port.substr(0, 3) == "://")) {
             result.Protocol = Utils::str_tolower(std::string(protocolStart, protocolEnd));
             protocolEnd += 3;   //      ://
-        } else
+        } else {
             protocolEnd = uri.begin();  // no protocol
+        }
     } else {
         protocolEnd = uri.begin();  // no protocol
     }
@@ -41,16 +38,16 @@ Uri Uri::Parse(const std::string &uri) {
     }
 
     // host
-    iterator_t hostStart = protocolEnd;
-    iterator_t pathStart = std::find(hostStart, uriEnd, '/');
-    iterator_t hostEnd = std::find(protocolEnd, (pathStart != uriEnd) ? pathStart : queryStart, ':');
+    auto hostStart = protocolEnd;
+    auto pathStart = std::find(hostStart, uri.end(), '/');
+    auto hostEnd = std::find(protocolEnd, (pathStart != uri.end()) ? pathStart : queryStart, ':');
 
     result.Host = std::string(hostStart, hostEnd);
 
     // port
-    if ((hostEnd != uriEnd) && ((&*(hostEnd))[0] == ':')) {
+    if ((hostEnd != uri.end()) && ((&*(hostEnd))[0] == ':')) {
         hostEnd++;
-        iterator_t portEnd = (pathStart != uriEnd) ? pathStart : queryStart;
+        auto portEnd = (pathStart != uri.end()) ? pathStart : queryStart;
         auto port = std::string(hostEnd, portEnd);
         if (!port.empty()) {
             result.Port = std::stoi(port);
@@ -66,12 +63,12 @@ Uri Uri::Parse(const std::string &uri) {
     }
 
     // path
-    if (pathStart != uriEnd) {
+    if (pathStart != uri.end()) {
         result.Path = std::string(pathStart, queryStart);
     }
 
     // query
-    if (queryStart != uriEnd) {
+    if (queryStart != uri.end()) {
         result.QueryString = std::string(queryStart, uri.end());
     }
 
