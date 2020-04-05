@@ -46,6 +46,7 @@ std::vector<std::string> V2raySubscriber::decode_config(const std::string &confi
                 proxy = std::string(decoded_proxy.begin(), decoded_proxy.end());
             } else {
                 spdlog::error("Failed to decode string {}", proxy);
+                proxy.clear();
             }
         }
     }
