@@ -26,8 +26,8 @@ Uri Uri::Parse(const std::string &uri) {
     iterator_t protocolEnd = std::find(protocolStart, uriEnd, ':');
 
     if (protocolEnd != uriEnd) {
-        std::string prot = &*(protocolEnd);
-        if ((prot.length() > 3) && (prot.substr(0, 3) == "://")) {
+        std::string port = &*(protocolEnd);
+        if ((port.length() > 3) && (port.substr(0, 3) == "://")) {
             result.Protocol = Utils::str_tolower(std::string(protocolStart, protocolEnd));
             protocolEnd += 3;   //      ://
         } else
