@@ -46,7 +46,10 @@ void ClashSubGenerator::run() {
             }
         }
     } else {
-        spdlog::warn("Provider name is not set, name2emoji may not work properly.");
+        // only display warning when name to emoji is enabled
+        if (config.use_emoji) {
+            spdlog::warn("Provider name is not set, name2emoji may not work properly.");
+        }
         subscriber->set_emoji_map(system_config["Global"]["location2emoji"]);
     }
 
@@ -80,7 +83,7 @@ YAML::Node ClashSubGenerator::create_emoji_map(const std::string &provider_name)
 
         for (const auto &local_emoji : provider["location2emoji"]) {
             auto emoji_name = local_emoji.first.as<std::string>();
-            spdlog::trace("增加 {} 到emoji列表中", emoji_name);
+            spdlog::trace("add {} to emoji list", emoji_name);
             emoji[emoji_name] = local_emoji.second.as<std::string>();
         }
     }
