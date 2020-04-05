@@ -77,3 +77,23 @@ Uri Uri::Parse(const std::string &uri) {
 
     return result;
 }
+
+const std::string &Uri::getQueryString() const {
+    return QueryString;
+}
+
+const std::string &Uri::getPath() const {
+    return Path;
+}
+
+const std::string &Uri::getProtocol() const {
+    return Protocol;
+}
+
+const std::string &Uri::getHost() const {
+    return Host;
+}
+
+int Uri::getPort() const {
+    return Port;
+}

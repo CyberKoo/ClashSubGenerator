@@ -68,8 +68,7 @@ void ClashSubGenerator::run() {
 }
 
 std::string ClashSubGenerator::version() {
-    return fmt::format("ClashSubGenerator {0}.{1}.{2}-{3}\nCompilation date: {4} {5}", CSG_MAJOR, CSG_MINOR,
-                       CSG_PATCH, CSG_RELEASE_INFO, __DATE__, __TIME__);
+    return fmt::format("{}\nCompilation date: {} {}", get_version(), __DATE__, __TIME__);
 }
 
 std::string ClashSubGenerator::get_file_full_path(const std::string &filename) {

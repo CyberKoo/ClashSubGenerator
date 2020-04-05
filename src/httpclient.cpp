@@ -11,12 +11,14 @@
 
 std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
     std::unique_ptr<httplib::Client> client;
-    if (uri.Protocol == "http") {
-        client = get_http_client(uri.Host, uri.Port);
-    } else if (uri.Protocol == "https") {
-        client = get_https_client(uri.Host, uri.Port);
+    if (uri.getProtocol() == "http") {
+        client = get_http_client(uri.getHost(), uri.getPort());
+    } else if (uri.getProtocol() == "https") {
+        client = get_https_client(uri.getHost(), uri.getPort());
     }
 
+    client->set_timeout_sec(5);
+    client->set_read_timeout(5, 1000);
     client->set_follow_location(true);
 
     return client;
@@ -26,7 +28,7 @@ std::string HttpClient::get(const std::string &uri) {
     spdlog::debug("Fetch uri {}", uri);
     auto parse_result = Uri::Parse(uri);
     auto client = HttpClient::connect(parse_result);
-    auto response = client->Get(fmt::format("{}{}", parse_result.Path, parse_result.QueryString).c_str(),
+    auto response = client->Get(fmt::format("{}{}", parse_result.getPath(), parse_result.getQueryString()).c_str(),
                                 {{"User-Agent", get_user_agent()}});
 
     if (response) {
@@ -88,5 +90,5 @@ std::string HttpClient::get_ca_path() {
 }
 
 std::string HttpClient::get_user_agent() {
-    return fmt::format("ClashSubGenerator/{0}.{1}.{2}-{3}", CSG_MAJOR, CSG_MINOR, CSG_PATCH, CSG_RELEASE_INFO);
+    return get_version();
 }

@@ -60,6 +60,7 @@ set(V2raySubscriber src/v2ray_subscriber.cpp src/v2ray_subscriber.h)
 set(ShadowsocksSubscriber src/shadowsocks_subscriber.cpp src/shadowsocks_subscriber.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
+set(version src/version.cpp src/version.h)
 set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
 set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h)
@@ -67,7 +68,6 @@ set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h)
 add_executable(ClashSubGenerator
         src/main.cpp
         src/config.h
-        src/version.h
         ${URI}
         ${HttpClient}
         ${RuleExtractor}
@@ -76,6 +76,7 @@ add_executable(ClashSubGenerator
         ${V2raySubscriber}
         ${ShadowsocksSubscriber}
         ${YAMLHelper}
+        ${version}
         ${utils}
         ${base64}
         ${Exceptions}

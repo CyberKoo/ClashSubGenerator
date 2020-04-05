@@ -9,10 +9,24 @@
 
 class Uri {
 public:
-    std::string QueryString, Path, Protocol, Host;
-    int Port = 0;
-
     static Uri Parse(const std::string &uri);
+
+    const std::string &getQueryString() const;
+
+    const std::string &getPath() const;
+
+    const std::string &getProtocol() const;
+
+    const std::string &getHost() const;
+
+    int getPort() const;
+
+private:
+    std::string QueryString;
+    std::string Path;
+    std::string Protocol;
+    std::string Host;
+    int Port = 0;
 };
 
 #endif //CLASHSUBGENERATOR_URI_H
