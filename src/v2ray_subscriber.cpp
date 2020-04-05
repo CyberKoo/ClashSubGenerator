@@ -26,7 +26,11 @@ void V2raySubscriber::load(const std::string &uri) {
         }
     }
 
-    spdlog::info("Total number of proxies loaded {}", proxies.size());
+    if (proxies.size() > 0) {
+        spdlog::info("Total number of proxies loaded {}", proxies.size());
+    } else {
+        spdlog::warn("No proxy loaded, this is probably not what you expected", proxies.size());
+    }
 }
 
 std::vector<std::string> V2raySubscriber::decode_config(const std::string &config) {
