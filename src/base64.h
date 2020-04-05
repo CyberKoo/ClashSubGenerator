@@ -8,7 +8,7 @@
 #include <string>
 
 namespace base64 {
-    using container_type =std::vector<unsigned char>;
+    using container_type = std::vector<unsigned char>;
 
     std::string encode(const std::string &data);
 

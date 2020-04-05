@@ -44,8 +44,10 @@ std::string base64::encode(const std::string &data) {
 
 base64::container_type base64::decode(const std::string &data) {
     auto base64 = get_base64_ptr();
+
     // this will be automatically cleaned by bio_clean_all
-    auto source = BIO_new_mem_buf(data.c_str(), -1);
+    auto source = BIO_new_mem_buf(data.c_str(), data.size());
+
     BIO_push(base64.get(), source);
 
     // pre calculated max length
