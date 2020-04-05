@@ -13,6 +13,8 @@ namespace base64 {
     std::string encode(const std::string &data);
 
     container_type decode(const std::string &data);
+
+    std::string to_string(const base64::container_type &result);
 };
 
 #endif //CLASHSUBGENERATOR_BASE64_H

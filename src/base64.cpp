@@ -64,3 +64,7 @@ base64::container_type base64::decode(const std::string &data) {
 
     return decoded;
 }
+
+std::string base64::to_string(const base64::container_type &result) {
+    return std::string(result.begin(), result.end());
+}
