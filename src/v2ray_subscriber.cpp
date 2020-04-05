@@ -86,6 +86,9 @@ YAML::Node V2raySubscriber::generate_proxy(const std::string &config) {
             // do i need ws-headers?
             if (network_str == "ws" && yaml["host"].IsDefined()) {
                 proxy["network"] = "ws";
+                if (yaml["path"].IsScalar()) {
+                    proxy["ws-path"] = yaml["path"];
+                }
                 proxy["ws-headers"] = YAML::Node(YAML::NodeType::Sequence);
                 proxy["ws-headers"]["Host"] = yaml["host"].as<std::string>();
             }
