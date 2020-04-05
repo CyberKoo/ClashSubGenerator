@@ -58,6 +58,7 @@ set(Subscriber src/subscriber.cpp src/subscriber.h)
 set(ClashSubscriber src/clash_subscriber.cpp src/clash_subscriber.h)
 set(V2raySubscriber src/v2ray_subscriber.cpp src/v2ray_subscriber.h)
 set(ShadowsocksSubscriber src/shadowsocks_subscriber.cpp src/shadowsocks_subscriber.h)
+set(ShadowsocksRSubscriber src/shadowsocksr_subscriber.cpp src/shadowsocksr_subscriber.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
 set(version src/version.cpp src/version.h)
@@ -75,6 +76,7 @@ add_executable(ClashSubGenerator
         ${ClashSubscriber}
         ${V2raySubscriber}
         ${ShadowsocksSubscriber}
+        ${ShadowsocksRSubscriber}
         ${YAMLHelper}
         ${version}
         ${utils}

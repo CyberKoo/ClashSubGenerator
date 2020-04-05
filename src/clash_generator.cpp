@@ -13,6 +13,7 @@
 #include "clash_subscriber.h"
 #include "v2ray_subscriber.h"
 #include "shadowsocks_subscriber.h"
+#include "shadowsocksr_subscriber.h"
 #include "exception/missing_key_exception.h"
 #include "exception/file_not_exists_exception.h"
 #include "exception/unsupported_configuration.h"
@@ -198,6 +199,8 @@ std::unique_ptr<Subscriber> ClashSubGenerator::get_subscriber() {
             return std::make_unique<V2raySubscriber>();
         case SubscribeType::SS:
             return std::make_unique<ShadowsocksSubscriber>();
+        case SubscribeType::SSR:
+            return std::make_unique<ShadowsocksRSubscriber>();
     }
 
     throw UnsupportedConfiguration(fmt::format("Unsupported subscribe type {}", config.subscribe_type));

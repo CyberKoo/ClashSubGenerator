@@ -16,7 +16,8 @@ int main(int argc, char *argv[]) {
     auto sub_conf = cliApp.add_option_group("Subscription options");
     std::map<std::string, SubscribeType> type_mapper({{"CLASH", SubscribeType::CLASH},
                                                       {"V2RAY", SubscribeType::V2RAY},
-                                                      {"SS",    SubscribeType::SS}});
+                                                      {"SS",    SubscribeType::SS},
+                                                      {"SSR",    SubscribeType::SSR}});
     auto type = sub_conf->add_option("-T,--subscribe_type", config.subscribe_type, "Subscription type")
             ->required(true)->transform(CLI::CheckedTransformer(type_mapper, CLI::ignore_case));
     auto provider_name = sub_conf->add_option("-n,--provider_name", config.provider_name, "Provider name")
