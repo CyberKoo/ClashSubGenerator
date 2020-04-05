@@ -85,8 +85,9 @@ std::string Utils::trim_copy(std::string s) {
 void Utils::replace(std::string &str, const std::map<std::string, std::string> &replace_list) {
     for (const auto &pair: replace_list) {
         auto pos = str.find(pair.first);
-        if (pos != std::string::npos) {
+        while (pos != std::string::npos) {
             str.replace(pos, pair.first.length(), pair.second);
+            pos = str.find(pair.first);
         }
     }
 }
