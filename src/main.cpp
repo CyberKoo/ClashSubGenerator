@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
         generator.run();
     } catch (CSGRuntimeException &e) {
         spdlog::critical("{}", e.what());
-        exit(-1);
+        std::abort();
     }
 
     return 0;
