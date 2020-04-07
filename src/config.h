@@ -20,21 +20,23 @@ enum class SubscribeType {
 };
 
 struct Config {
-    std::string subscribe_url;
-    SubscribeType subscribe_type;
-    std::string provider_name;
-    std::string rules_uri;
+    bool debug;
+    bool use_emoji;
+    bool local_only;
+    bool enable_grouping;
+    bool exclude_amplified_proxy;
+
     std::string output;
-    std::string working_directory;
+    std::string rules_uri;
+    std::string subscribe_url;
+    std::string provider_name;
     std::string config_file;
     std::string template_file;
     std::string repository_url;
-    bool enable_grouping;
-    bool use_emoji;
-    bool exclude_amplified_proxy;
-    bool local_only;
-    bool debug;
+    std::string working_directory;
+
     size_t group_min_size;
+    SubscribeType subscribe_type;
     Generator generator;
     Syntax syntax;
 };
