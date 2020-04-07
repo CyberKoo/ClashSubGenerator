@@ -21,7 +21,7 @@ public:
 
     virtual void grouping(size_t group_min_size);
 
-    virtual YAML::Node get_yaml(bool use_emoji);
+    virtual YAML::Node get(bool use_emoji);
 
     void set_provider(const YAML::Node &_provider);
 

@@ -14,7 +14,6 @@
 #include "v2ray_subscriber.h"
 #include "shadowsocks_subscriber.h"
 #include "shadowsocksr_subscriber.h"
-#include "exception/missing_key_exception.h"
 #include "exception/file_not_exists_exception.h"
 #include "exception/unsupported_configuration.h"
 
@@ -57,7 +56,7 @@ void ClashSubGenerator::run() {
     subscriber->load(config.subscribe_url);
     subscriber->grouping(config.group_min_size);
     subscriber->set_exclude_amplified_node(config.exclude_amplified_proxy);
-    auto proxies = subscriber->get_yaml(config.use_emoji);
+    auto proxies = subscriber->get(config.use_emoji);
     auto clash_config = generate_configuration(proxies, provider["preferred_group"]);
     auto proxy_list = get_all_proxies_name(clash_config);
 
@@ -73,14 +72,13 @@ std::string ClashSubGenerator::version() {
 }
 
 std::string ClashSubGenerator::get_file_full_path(const std::string &filename) {
-    return fmt::format("{}/{}", config.working_directory, filename);
+    return fmt::format("{}{}", config.working_directory, filename);
 }
 
 YAML::Node ClashSubGenerator::create_emoji_map(const std::string &provider_name) {
     auto emoji = YAML::Node(system_config["Global"]["location2emoji"]);
     auto provider = system_config["Providers"][provider_name];
     if (provider["location2emoji"].IsDefined() && provider["location2emoji"].size() != 0) {
-
         for (const auto &local_emoji : provider["location2emoji"]) {
             auto emoji_name = local_emoji.first.as<std::string>();
             spdlog::trace("add {} to emoji list", emoji_name);

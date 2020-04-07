@@ -106,7 +106,7 @@ void Subscriber::grouping(size_t group_min_size) {
     }
 }
 
-YAML::Node Subscriber::get_yaml(bool use_emoji) {
+YAML::Node Subscriber::get(bool use_emoji) {
     auto node = YAML::Node();
 
     node["groups"] = YAML::Node(YAML::NodeType::Sequence);
