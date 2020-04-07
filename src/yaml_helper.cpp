@@ -9,9 +9,10 @@
 #include "yaml_helper.h"
 #include "httpclient.h"
 #include "utils.h"
+#include "filesystem.h"
 #include "exception/file_write_exception.h"
 #include "exception/missing_key_exception.h"
-#include "exception/file_not_exists_exception.h"
+#include "exception/file_system_exception.h"
 
 YAML::Node YAMLHelper::load_remote(const std::string &uri) {
     auto remote_config = HttpClient::get(uri);
@@ -19,15 +20,15 @@ YAML::Node YAMLHelper::load_remote(const std::string &uri) {
 }
 
 YAML::Node YAMLHelper::load_local(const std::string &path) {
-    if (Utils::file_exists(path)) {
+    if (FileSystem::exists(path)) {
         return YAML::LoadFile(path);
     }
 
-    throw FileNotExistsException(fmt::format("File {} doesn't exist", path));
+    throw FileSystemException(fmt::format("File {} doesn't exist", path));
 }
 
 std::string YAMLHelper::search_key(const YAML::Node &node, const std::vector<std::string> &keys) {
-    for (auto &key :keys) {
+    for (const auto &key :keys) {
         if (node[key].IsDefined()) {
             return key;
         }
@@ -59,6 +60,17 @@ void YAMLHelper::node_renamer(const YAML::Node &node, const std::map<std::string
     }
 }
 
+void YAMLHelper::node_renamer(const YAML::Node &node, const std::string &search, const std::string &replace) {
+    for (auto item: node) {
+        auto key_name = item.first.as<std::string>();
+        if (key_name == search) {
+            item.first = replace;
+            spdlog::trace("Replace key {} to {}", key_name, replace);
+            break;
+        }
+    }
+}
+
 void YAMLHelper::node_merger(const YAML::Node &source_node, YAML::Node target_node) {
     for (const auto &node : source_node) {
         target_node.push_back(YAML::Node(node));
@@ -73,6 +85,22 @@ YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, const s
     group_content["url"] = YAML::Node(url);
     group_content["interval"] = YAML::Node(interval);
     group_content["proxies"] = YAML::Node(YAML::NodeType::Sequence);
+
+    return group_content;
+}
+
+YAML::Node YAMLHelper::create_provider_group(const std::string &type, const std::string &path, const std::string &url,
+                                             bool hc_enable, const std::string &hc_url, int hc_interval) {
+    auto group_content = YAML::Node();
+    group_content["type"] = YAML::Node(type);
+    group_content["path"] = YAML::Node(path);
+    if (!url.empty()) {
+        group_content["url"] = YAML::Node(url);
+    }
+    group_content["health-check"] = YAML::Node(YAML::NodeType::Map);
+    group_content["health-check"]["enable"] = YAML::Node(hc_enable);
+    group_content["health-check"]["url"] = YAML::Node(hc_url);
+    group_content["health-check"]["interval"] = YAML::Node(hc_interval);
 
     return group_content;
 }

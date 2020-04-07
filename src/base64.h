@@ -7,14 +7,14 @@
 
 #include <string>
 
-namespace base64 {
+namespace Base64 {
     using container_type = std::vector<unsigned char>;
 
     std::string encode(const std::string &data);
 
     container_type decode(const std::string &data);
 
-    std::string to_string(const base64::container_type &result);
+    std::string to_string(const Base64::container_type &result);
 };
 
 #endif //CLASHSUBGENERATOR_BASE64_H

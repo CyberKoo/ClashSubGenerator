@@ -28,6 +28,8 @@ private:
 
     std::unique_ptr<Subscriber> get_subscriber();
 
+    YAML::Node generate_provider_configuration(const YAML::Node &node);
+
     static void legacy_syntax_converter(const YAML::Node &node);
 
     static std::vector<std::string> get_all_proxies_name(const YAML::Node &node);
@@ -36,6 +38,7 @@ private:
     const Config &config;
 
     YAML::Node system_config;
+
 };
 
 #endif //CLASHSUBGENERATOR_CLASH_GENERATOR_H

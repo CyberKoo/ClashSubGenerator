@@ -4,6 +4,7 @@ project(ClashSubGenerator)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -62,6 +63,7 @@ set(ShadowsocksRSubscriber src/shadowsocksr_subscriber.cpp src/shadowsocksr_subs
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
 set(Hash src/hash.cpp src/hash.h)
+set(FileSystem src/filesystem.cpp src/filesystem.h)
 set(version src/version.cpp src/version.h)
 set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
@@ -82,8 +84,9 @@ add_executable(ClashSubGenerator
         ${version}
         ${utils}
         ${Hash}
+        ${FileSystem}
         ${base64}
         ${Exceptions}
         ${ClashSubGenerator}
         )
-target_link_libraries(ClashSubGenerator yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(ClashSubGenerator yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto stdc++fs)

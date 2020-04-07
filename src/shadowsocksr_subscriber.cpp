@@ -19,7 +19,7 @@ void ShadowsocksRSubscriber::load(const std::string &uri) {
 }
 
 std::vector<std::string> ShadowsocksRSubscriber::decode_config(const std::string &config) {
-    auto decoded = base64::decode(config);
+    auto decoded = Base64::decode(config);
     std::string decoded_str(decoded.begin(), decoded.end());
 
     auto proxy_list = Utils::split(decoded_str, '\n');
@@ -34,7 +34,7 @@ std::vector<std::string> ShadowsocksRSubscriber::decode_config(const std::string
 
         if (!proxy.empty()) {
             // decode again
-            auto decoded_proxy = base64::decode(proxy);
+            auto decoded_proxy = Base64::decode(proxy);
             if (!decoded_proxy.empty()) {
                 proxy = std::string(decoded_proxy.begin(), decoded_proxy.end());
             } else {
@@ -60,8 +60,8 @@ YAML::Node ShadowsocksRSubscriber::transform_config(const std::vector<std::strin
         node["protocol"] = exploded[2];
         node["method"] = exploded[3];
         node["obfuscate"] = exploded[4];
-        auto password = base64::decode(exploded[5]);
-        node["password"] = base64::to_string(password);
+        auto password = Base64::decode(exploded[5]);
+        node["password"] = Base64::to_string(password);
 
         // additional parameters
         node["parameters"] = get_parameters(ssr[1]);
@@ -84,7 +84,7 @@ std::map<std::string, std::string> ShadowsocksRSubscriber::get_parameters(std::s
     for (const auto &pair : parameter_pair) {
         auto map_content = Utils::split(pair, '=');
         if (map_content.size() == 2) {
-            auto value = base64::decode(map_content[1]);
+            auto value = Base64::decode(map_content[1]);
             parameters.emplace(map_content[0], std::string(value.begin(), value.end()));
         } else {
             spdlog::warn("discard parameter {}", pair);

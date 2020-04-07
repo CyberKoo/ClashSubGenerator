@@ -15,15 +15,27 @@ const auto BIOFreeAll = [](BIO *p) {
 
 using bio_ptr = std::unique_ptr<BIO, decltype(BIOFreeAll)>;
 
-bio_ptr get_base64_ptr() {
-    bio_ptr ptr(BIO_new(BIO_f_base64()), BIOFreeAll);
-    BIO_set_flags(ptr.get(), BIO_FLAGS_BASE64_NO_NL);
+std::string padding(const std::string &data) {
+    if (data.size() % 3 != 0) {
+        auto data_padded = data;
+        auto padding = 3 - (data.size() % 3);
+        for (unsigned long i = 0; i < padding; ++i) {
+            data_padded += "=";
+        }
 
-    return ptr;
+        return data_padded;
+    }
+
+    return data;
 }
 
-std::string base64::encode(const std::string &data) {
-    auto base64 = get_base64_ptr();
+std::string Base64::encode(const std::string &data) {
+    auto base64 = bio_ptr(BIO_new(BIO_f_base64()), BIOFreeAll);
+
+    if (data.find('\n') == std::string::npos) {
+        BIO_set_flags(base64.get(), BIO_FLAGS_BASE64_NO_NL); //Don't require trailing newlines
+    }
+
     // this will be automatically cleaned by bio_clean_all
     auto sink = BIO_new(BIO_s_mem());
 
@@ -42,19 +54,25 @@ std::string base64::encode(const std::string &data) {
     return std::string(encoded, len);
 }
 
-base64::container_type base64::decode(const std::string &data) {
-    auto base64 = get_base64_ptr();
+Base64::container_type Base64::decode(const std::string &data) {
+    auto base64 = bio_ptr(BIO_new(BIO_f_base64()), BIOFreeAll);
+
+    if (data.find('\n') == std::string::npos) {
+        BIO_set_flags(base64.get(), BIO_FLAGS_BASE64_NO_NL); //Don't require trailing newlines
+    }
+
+    auto input = padding(data);
 
     // this will be automatically cleaned by bio_clean_all
-    auto source = BIO_new_mem_buf(data.c_str(), data.size());
+    auto source = BIO_new_mem_buf(input.c_str(), input.size());
 
     BIO_push(base64.get(), source);
 
     // pre calculated max length
-    const auto maxlen = data.size() / 4 * 3 + 1;
+    const auto maxlen = input.size() / 4 * 3 + 1;
 
     // reserve space
-    base64::container_type decoded(maxlen);
+    Base64::container_type decoded(maxlen);
 
     // calculate exact length
     const auto len = BIO_read(base64.get(), decoded.data(), maxlen);
@@ -65,6 +83,6 @@ base64::container_type base64::decode(const std::string &data) {
     return decoded;
 }
 
-std::string base64::to_string(const base64::container_type &result) {
+std::string Base64::to_string(const Base64::container_type &result) {
     return std::string(result.begin(), result.end());
 }

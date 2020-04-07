@@ -6,7 +6,9 @@
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
+#include "hash.h"
 #include "utils.h"
+#include "filesystem.h"
 #include "yaml_helper.h"
 #include "rule_extractor.h"
 #include "clash_generator.h"
@@ -14,7 +16,7 @@
 #include "v2ray_subscriber.h"
 #include "shadowsocks_subscriber.h"
 #include "shadowsocksr_subscriber.h"
-#include "exception/file_not_exists_exception.h"
+#include "exception/file_system_exception.h"
 #include "exception/unsupported_configuration.h"
 
 void ClashSubGenerator::run() {
@@ -57,13 +59,18 @@ void ClashSubGenerator::run() {
     subscriber->grouping(config.group_min_size);
     subscriber->set_exclude_amplified_node(config.exclude_amplified_proxy);
     auto proxies = subscriber->get(config.use_emoji);
-    auto clash_config = generate_configuration(proxies, provider["preferred_group"]);
-    auto proxy_list = get_all_proxies_name(clash_config);
+    // auto proxy_list = get_all_proxies_name(clash_config);
+    if (config.generator == Generator::PROVIDER) {
+        proxies = generate_provider_configuration(proxies);
+    }
 
+    auto clash_config = generate_configuration(proxies, provider["preferred_group"]);
+    // convert to legacy format
     if (config.syntax == Syntax::LEGACY) {
         legacy_syntax_converter(clash_config);
     }
 
+    // write config.yaml
     YAMLHelper::write_yaml(clash_config, get_file_full_path(config.output));
 }
 
@@ -91,7 +98,7 @@ YAML::Node ClashSubGenerator::create_emoji_map(const std::string &provider_name)
 
 YAML::Node ClashSubGenerator::get_config(const std::string &filename, const std::string &repository_filename) {
     auto path = get_file_full_path(filename);
-    if (Utils::file_exists(path)) {
+    if (FileSystem::exists(path)) {
         return YAMLHelper::load_local(path);
     } else {
         if (!config.local_only) {
@@ -100,7 +107,7 @@ YAML::Node ClashSubGenerator::get_config(const std::string &filename, const std:
             return YAMLHelper::load_remote(uri);
         } else {
             spdlog::error("Local only enabled, not allowed to fetch configuration from repository");
-            throw FileNotExistsException(fmt::format("file {} doesn't exist", filename));
+            throw FileSystemException(fmt::format("file {} doesn't exist", filename));
         }
     }
 }
@@ -131,9 +138,13 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     YAMLHelper::node_merger(node["proxies"], yaml_template["proxies"]);
     YAMLHelper::node_merger(rules, yaml_template["rules"]);
     YAMLHelper::node_merger(node["groups"], yaml_template["proxy-groups"]);
+    // append proxy-providers
+    if (node["proxy-providers"].IsDefined() && node["proxy-providers"].IsMap()) {
+        yaml_template["proxy-providers"] = node["proxy-providers"];
+    }
 
     bool anchor_replaced = false;
-    std::string anchor = "__ANCHOR__";
+    const std::string anchor = "__ANCHOR__";
     auto anchor_group_name = config.provider_name.empty() ? "Generated" : config.provider_name;
     for (auto group : yaml_template["proxy-groups"]) {
         auto name = group["name"].as<std::string>();
@@ -165,6 +176,50 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     }
 
     return yaml_template;
+}
+
+YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &node) {
+    const auto directory_name = get_file_full_path("providers");
+    // create directory if not exists
+    if (!FileSystem::exists(directory_name)) {
+        spdlog::debug("directory {} not exist, creating...", directory_name);
+        FileSystem::mkdir(directory_name);
+    } else {
+        spdlog::debug("clearing directory {}", directory_name);
+        FileSystem::clear_directory(directory_name);
+    }
+
+    auto master_config = YAML::Node();
+    master_config["proxy-providers"] = YAML::Node(YAML::NodeType::Map);
+    master_config["groups"] = YAML::Node(YAML::NodeType::Sequence);
+    master_config["group_name"] = node["group_name"];
+    for (const auto &group: node["groups"]) {
+        auto proxies_list = group["proxies"].as<std::vector<std::string>>();
+        auto provider_proxies = YAML::Node();
+        provider_proxies["proxies"] = YAML::Node(YAML::NodeType::Sequence);
+
+        for (const auto &proxy_node : node["proxies"]) {
+            const auto name = proxy_node["name"].as<std::string>();
+            if (std::find(proxies_list.begin(), proxies_list.end(), name) != proxies_list.end()) {
+                provider_proxies["proxies"].push_back(proxy_node);
+            }
+        }
+
+        // write to file
+        const auto group_name = group["name"].as<std::string>();
+        auto out_file = fmt::format("providers/{}.yaml", Hash::md5(group_name));
+        YAMLHelper::write_yaml(provider_proxies, get_file_full_path(out_file));
+
+        auto group_node = YAMLHelper::create_provider_group("file", out_file);
+        master_config["proxy-providers"][group_name] = group_node;
+
+        auto proxy_group = YAMLHelper::create_proxy_group(group_name);
+        YAMLHelper::node_renamer(proxy_group, "proxies", "use");
+        proxy_group["use"].push_back(group_name);
+        master_config["groups"].push_back(proxy_group);
+    }
+
+    return master_config;
 }
 
 void ClashSubGenerator::legacy_syntax_converter(const YAML::Node &node) {

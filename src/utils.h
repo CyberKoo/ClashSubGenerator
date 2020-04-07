@@ -28,8 +28,6 @@ namespace Utils {
 
     std::string get_time(const std::string &format);
 
-    bool file_exists(const std::string &name);
-
     std::vector<std::string> split(const std::string &s, char delim);
 
     void replace(std::string &str, const std::map<std::string, std::string> &replace_list);

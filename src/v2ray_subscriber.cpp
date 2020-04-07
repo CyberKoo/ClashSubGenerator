@@ -34,7 +34,7 @@ void V2raySubscriber::load(const std::string &uri) {
 }
 
 std::vector<std::string> V2raySubscriber::decode_config(const std::string &config) {
-    auto decoded = base64::decode(config);
+    auto decoded = Base64::decode(config);
     std::string decoded_str(decoded.begin(), decoded.end());
 
     auto proxy_list = Utils::split(decoded_str, '\n');
@@ -45,9 +45,9 @@ std::vector<std::string> V2raySubscriber::decode_config(const std::string &confi
 
         if (!proxy.empty()) {
             // decode again
-            auto decoded_proxy = base64::decode(proxy);
+            auto decoded_proxy = Base64::decode(proxy);
             if (!decoded_proxy.empty()) {
-                proxy = base64::to_string(decoded_proxy);
+                proxy = Base64::to_string(decoded_proxy);
             } else {
                 spdlog::error("Failed to decode string {}", proxy);
                 proxy.clear();

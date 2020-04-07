@@ -7,6 +7,7 @@
 #include "exception/invalid_http_status_exception.h"
 #include "exception/request_failure_exception.h"
 #include "httpclient.h"
+#include "filesystem.h"
 #include "utils.h"
 
 std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
@@ -77,7 +78,7 @@ std::string HttpClient::get_ca_path() {
         spdlog::trace("Start initialize httpclient");
         spdlog::trace("Looking for CA bundle");
         for (const auto &spath : search_path) {
-            if (Utils::file_exists(spath)) {
+            if (FileSystem::exists(spath)) {
                 spdlog::debug("Found CA bundle at {}", spath);
                 spdlog::debug("Server certificate verification enabled");
                 path = spath;
