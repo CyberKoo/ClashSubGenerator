@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     std::map<std::string, SubscribeType> type_mapper({{"CLASH", SubscribeType::CLASH},
                                                       {"V2RAY", SubscribeType::V2RAY},
                                                       {"SS",    SubscribeType::SS},
-                                                      {"SSR",    SubscribeType::SSR}});
+                                                      {"SSR",   SubscribeType::SSR}});
     auto type = sub_conf->add_option("-T,--subscribe_type", config.subscribe_type, "Subscription type")
             ->required(true)->transform(CLI::CheckedTransformer(type_mapper, CLI::ignore_case));
     auto provider_name = sub_conf->add_option("-n,--provider_name", config.provider_name, "Provider name")
@@ -50,8 +50,14 @@ int main(int argc, char *argv[]) {
 
     cliApp.add_option("-c,--config", config.config_file, "Load configuration file")
             ->default_val("sys_config.yaml")->required(false);
-    cliApp.add_option("-w,--working_directory", config.working_directory, "Set default working directory")
-            ->required(false)->default_val("./");
+    cliApp.add_option("-w,--working_directory", [&config](const CLI::results_t &res) -> bool {
+        if (res[0].back() != '/' || res[0].back() != '\\') {
+            config.working_directory = fmt::format("{}/", res[0]);
+        } else {
+            config.working_directory = res[0];
+        }
+        return true;
+    }, "Set default working directory")->required(false)->default_val("./");
     cliApp.add_option("-o,--output", config.output, "Output file name")
             ->required(false)->default_val("config.yaml");
     cliApp.add_option("-t,--template", config.template_file, "Template file name")
