@@ -119,7 +119,8 @@ YAML::Node Subscriber::get_yaml(bool use_emoji) {
             node["group_name"].push_back(group_name);
             spdlog::debug("Processing group {}", group_name);
 
-            auto group_content = YAMLHelper::create_proxy_group(group_name, "url-test");
+            auto strategy = (group.first != "leftover") ? "url-test" : "select";
+            auto group_content = YAMLHelper::create_proxy_group(group_name, strategy);
             node["groups"].push_back(group_content);
 
             size_t counter = 1;
