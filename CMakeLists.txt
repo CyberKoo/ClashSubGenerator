@@ -61,6 +61,7 @@ set(ShadowsocksSubscriber src/shadowsocks_subscriber.cpp src/shadowsocks_subscri
 set(ShadowsocksRSubscriber src/shadowsocksr_subscriber.cpp src/shadowsocksr_subscriber.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
+set(Hash src/hash.cpp src/hash.h)
 set(version src/version.cpp src/version.h)
 set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
@@ -80,6 +81,7 @@ add_executable(ClashSubGenerator
         ${YAMLHelper}
         ${version}
         ${utils}
+        ${Hash}
         ${base64}
         ${Exceptions}
         ${ClashSubGenerator}
