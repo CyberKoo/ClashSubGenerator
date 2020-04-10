@@ -14,7 +14,6 @@
 #include "clash_generator.h"
 #include "clash_subscriber.h"
 #include "v2ray_subscriber.h"
-#include "shadowsocks_subscriber.h"
 #include "shadowsocksr_subscriber.h"
 #include "exception/file_system_exception.h"
 #include "exception/unsupported_configuration.h"
@@ -210,9 +209,10 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
         auto out_file = fmt::format("providers/{}.yaml", Hash::md5(group_name));
         YAMLHelper::write_yaml(provider_proxies, get_file_full_path(out_file));
 
-        auto group_node = YAMLHelper::create_provider_group("file", out_file);
-        master_config["proxy-providers"][group_name] = group_node;
+        // write provider section
+        master_config["proxy-providers"][group_name] = YAMLHelper::create_provider_group("file", out_file);
 
+        // write proxy groups
         auto proxy_group = YAMLHelper::create_proxy_group(group_name);
         YAMLHelper::node_renamer(proxy_group, "proxies", "use");
         proxy_group["use"].push_back(group_name);
@@ -250,8 +250,6 @@ std::unique_ptr<Subscriber> ClashSubGenerator::get_subscriber() {
             return std::make_unique<ClashSubscriber>();
         case SubscribeType::V2RAY:
             return std::make_unique<V2raySubscriber>();
-        case SubscribeType::SS:
-            return std::make_unique<ShadowsocksSubscriber>();
         case SubscribeType::SSR:
             return std::make_unique<ShadowsocksRSubscriber>();
     }

@@ -3,6 +3,7 @@
 //
 
 #include <iomanip>
+#include <sstream>
 
 #include <openssl/sha.h>
 #include <openssl/md5.h>

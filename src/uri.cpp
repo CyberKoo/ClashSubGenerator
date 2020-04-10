@@ -10,7 +10,7 @@
 
 Uri Uri::Parse(const std::string &uri) {
     Uri result;
-    
+
     if (uri.empty())
         return result;
 
