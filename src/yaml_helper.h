@@ -38,6 +38,14 @@ namespace YAMLHelper {
             for (auto sub_node : node) {
                 if (sub_node.IsDefined()) {
                     format(sub_node, style, true);
+                } else {
+                    if (sub_node.first.IsDefined()) {
+                        format(sub_node.first, style, true);
+                    }
+
+                    if (sub_node.second.IsDefined()) {
+                        format(sub_node.second, style, true);
+                    }
                 }
             }
         }
