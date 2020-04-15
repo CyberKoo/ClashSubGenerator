@@ -29,6 +29,19 @@ namespace YAMLHelper {
     void node_renamer(const YAML::Node &node, const std::map<std::string, std::string> &replace_pair);
 
     void node_renamer(const YAML::Node &node, const std::string &search, const std::string &replace);
+
+    template<class T>
+    void format(T &&node, YAML::EmitterStyle::value style, bool recursive = false) {
+        node.SetStyle(style);
+
+        if (recursive) {
+            for (auto sub_node : node) {
+                if (sub_node.IsDefined()) {
+                    format(sub_node, style, true);
+                }
+            }
+        }
+    }
 }
 
 #endif //CLASHSUBGENERATOR_YAML_HELPER_H

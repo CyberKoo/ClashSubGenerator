@@ -64,6 +64,15 @@ void ClashSubGenerator::run() {
     }
 
     auto clash_config = generate_configuration(proxies, provider["preferred_group"]);
+
+    // format configurations
+    constexpr char keys[][16] = {"proxies", "proxy-groups", "rules", "proxy-providers"};
+    for (const auto &key : keys) {
+        if (clash_config[key].IsDefined()) {
+            YAMLHelper::format(clash_config[key], YAML::EmitterStyle::Block, true);
+        }
+    }
+
     // convert to legacy format
     if (config.syntax == Syntax::LEGACY) {
         legacy_syntax_converter(clash_config);
