@@ -62,7 +62,7 @@ std::unique_ptr<httplib::Client> HttpClient::get_https_client(const std::string 
 std::string HttpClient::get_ca_path() {
     static std::string path;
     static bool inited = false;
-    static const std::vector<std::string> search_path{
+    constexpr char search_path[][50]{
             "/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
             "/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
             "/etc/ssl/ca-bundle.pem",                            // OpenSUSE

@@ -22,7 +22,7 @@ std::set<std::string> RuleExtractor::get_required_proxies() {
         proxy_name.emplace(split.back());
     }
 
-    const char reserved_keywords[][11] = {"no-resolve", "Final", "DIRECT", "REJECT", "MATCH"};
+    constexpr char reserved_keywords[][11] = {"no-resolve", "Final", "DIRECT", "REJECT", "MATCH"};
     for (const auto &key:reserved_keywords) {
         proxy_name.erase(key);
     }
