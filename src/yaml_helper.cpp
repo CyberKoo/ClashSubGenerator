@@ -28,9 +28,11 @@ YAML::Node YAMLHelper::load_local(const std::string &path) {
 }
 
 std::string YAMLHelper::search_key(const YAML::Node &node, const std::vector<std::string> &keys) {
-    for (const auto &key :keys) {
-        if (node[key].IsDefined()) {
-            return key;
+    if (node.IsDefined() && !node.IsScalar()) {
+        for (const auto &key :keys) {
+            if (node[key].IsDefined()) {
+                return key;
+            }
         }
     }
 
