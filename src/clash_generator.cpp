@@ -144,7 +144,6 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     }
 
     YAMLHelper::node_merger(node["proxies"], yaml_template["proxies"]);
-    YAMLHelper::node_merger(rules, yaml_template["rules"]);
     YAMLHelper::node_merger(node["groups"], yaml_template["proxy-groups"]);
     // append proxy-providers
     if (node["proxy-providers"].IsDefined() && node["proxy-providers"].IsMap()) {
@@ -182,6 +181,18 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
     }
+
+    // replace anchor in user-defined rules
+    for (auto rule : yaml_template["rules"]) {
+        auto s_rule = rule.as<std::string>();
+        if (s_rule.find(anchor) != std::string::npos) {
+            Utils::replace(s_rule, {{anchor, anchor_group_name}});
+            auto node_rule = YAML::Node(rule);
+            node_rule = s_rule;
+        }
+    }
+
+    YAMLHelper::node_merger(rules, yaml_template["rules"]);
 
     return yaml_template;
 }
