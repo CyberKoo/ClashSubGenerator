@@ -19,6 +19,8 @@ protected:
 
     static std::pair<std::string, std::string> strip(std::string &uri);
 
+    static std::pair<std::string, std::string> strip_name(const std::string &content);
+
 private:
     static std::unique_ptr<ProxyDecoder> get_decoder(const std::string&);
 };

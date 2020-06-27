@@ -44,11 +44,20 @@ std::unique_ptr<ProxyDecoder> ProxyDecoder::get_decoder(const std::string &proto
         return std::make_unique<ShadowsocksDecoder>();
     } else if (protocol == "ssr") {
         return std::make_unique<ShadowsocksRDecoder>();
-    } else if (protocol == "socks5") {
+    } else if (protocol == "socks") {
         return std::make_unique<Socks5Decoder>();
     }
 
     throw UnsupportedConfiguration(fmt::format("Unable to determine the protocol", protocol));
+}
+
+std::pair<std::string, std::string> ProxyDecoder::strip_name(const std::string &content) {
+    auto comment_start = content.rfind('#');
+    if (comment_start != std::string::npos) {
+        return std::make_pair(content.substr(comment_start + 1, content.size() - 1), content.substr(0, comment_start));
+    }
+
+    return std::make_pair("", content);
 }
 
 
