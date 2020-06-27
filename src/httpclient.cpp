@@ -18,7 +18,7 @@ std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
         client = get_https_client(uri.getHost(), uri.getPort());
     }
 
-    client->set_timeout_sec(5);
+    client->set_connection_timeout(5);
     client->set_read_timeout(5, 1000);
     client->set_follow_location(true);
 
