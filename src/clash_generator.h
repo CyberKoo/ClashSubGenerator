@@ -6,7 +6,7 @@
 #define CLASHSUBGENERATOR_CLASH_GENERATOR_H
 
 #include <yaml-cpp/yaml.h>
-#include "subscriber.h"
+#include "subscriber/subscriber.h"
 #include "config.h"
 
 class ClashSubGenerator {

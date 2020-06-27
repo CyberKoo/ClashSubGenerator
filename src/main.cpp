@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     gen_opts->add_option("-m,--min_group_size", config.group_min_size, "Minimum size of a group")
             ->required(false)->default_val(2)->check(CLI::Range(1, 10));
     gen_opts->add_option("-r,--rules_url", config.rules_uri, "External Rules url")
-            ->default_val("https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml");
+            ->default_val("https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Global.yaml");
     gen_opts->add_option("-S,--syntax", config.syntax, "Syntax of generated file")
             ->required(false)->default_val(Syntax::MODERN)
             ->transform(CLI::CheckedTransformer(EnumMapper::get_syntax_mapper(), CLI::ignore_case));
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
             ->required(false)->default_val("template.yaml");
     cliApp.add_option("-R,--repository_url", config.repository_url, "Repository base url")
             ->required(false)->default_val("https://raw.githubusercontent.com/CyberKoo/Config/master");
-    cliApp.add_flag("-l,--local_only", config.local_only, "Do not load file from remove repository")
+    cliApp.add_flag("-l,--local_only", config.local_only, "Do not load file from remote repository")
             ->required(false)->default_val(false);
     // debug mode
     cliApp.add_flag("-d,--debug", config.debug, "Enable debug mode")

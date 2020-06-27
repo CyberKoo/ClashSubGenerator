@@ -12,8 +12,7 @@ namespace EnumMapper {
     enum_mapper_t<SubscribeType> get_subscribe_type_mapper() {
         return std::map<std::string, SubscribeType>{
                 {"CLASH", SubscribeType::CLASH},
-                {"V2RAY", SubscribeType::V2RAY},
-                {"SSR",   SubscribeType::SSR}
+                {"OTHER", SubscribeType::OTHER},
         };;
     }
 

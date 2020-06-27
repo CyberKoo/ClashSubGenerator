@@ -4,8 +4,8 @@
 
 #include <spdlog/spdlog.h>
 #include "subscriber.h"
-#include "yaml_helper.h"
-#include "utils.h"
+#include "../yaml_helper.h"
+#include "../utils.h"
 
 Subscriber::Subscriber() {
     this->regex_collapse = false;

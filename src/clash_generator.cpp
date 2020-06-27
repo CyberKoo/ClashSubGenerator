@@ -12,11 +12,8 @@
 #include "yaml_helper.h"
 #include "rule_extractor.h"
 #include "clash_generator.h"
-#include "clash_subscriber.h"
-#include "v2ray_subscriber.h"
-#include "shadowsocksr_subscriber.h"
+#include "subscriber/subscriber_factory.h"
 #include "exception/file_system_exception.h"
-#include "exception/unsupported_configuration.h"
 
 void ClashSubGenerator::run() {
     spdlog::info("Configuration syntax: {}",
@@ -25,7 +22,7 @@ void ClashSubGenerator::run() {
 
     system_config = get_config(config.config_file, "sys_config.yaml");
     auto provider = system_config["Providers"][config.provider_name];
-    auto subscriber = get_subscriber();
+    auto subscriber = SubscriberFactory::make(config.subscribe_type);
 
     // provider related
     if (!config.provider_name.empty()) {
@@ -262,17 +259,4 @@ std::vector<std::string> ClashSubGenerator::get_all_proxies_name(const YAML::Nod
     }
 
     return name_list;
-}
-
-std::unique_ptr<Subscriber> ClashSubGenerator::get_subscriber() {
-    switch (config.subscribe_type) {
-        case SubscribeType::CLASH:
-            return std::make_unique<ClashSubscriber>();
-        case SubscribeType::V2RAY:
-            return std::make_unique<V2raySubscriber>();
-        case SubscribeType::SSR:
-            return std::make_unique<ShadowsocksRSubscriber>();
-    }
-
-    throw UnsupportedConfiguration(fmt::format("Unsupported subscribe type {}", config.subscribe_type));
 }

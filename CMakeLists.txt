@@ -32,6 +32,11 @@ endif ()
 
 # require filesystem module
 #find_package(Filesystem REQUIRED)
+if (APPLE)
+    set(LIBFS c++)
+else ()
+    set(LIBFS stdc++fs)
+endif ()
 
 # generate version.h
 include_directories(${CMAKE_BINARY_DIR})
@@ -55,13 +60,18 @@ add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT)
 add_subdirectory(deps/cpp-httplib)
 add_subdirectory(deps/CLI11)
 
+# glob files
 file(GLOB_RECURSE Exceptions "src/exception/*.h")
+file(GLOB_RECURSE ProxyDecoderHeaders "src/proxy_decoder/*.h")
+file(GLOB_RECURSE ProxyDecoderSources "src/proxy_decoder/*.cpp")
+file(GLOB_RECURSE SubscriberHeaders "src/subscriber/*.h")
+file(GLOB_RECURSE SubscriberSources "src/subscriber/*.cpp")
+
+#
+set(Subscriber ${SubscriberHeaders} ${SubscriberSources})
+set(ProxyDecoder ${ProxyDecoderHeaders} ${ProxyDecoderSources})
 set(utils src/utils.cpp src/utils.h)
 set(RuleExtractor src/rule_extractor.cpp src/rule_extractor.h)
-set(Subscriber src/subscriber.cpp src/subscriber.h)
-set(ClashSubscriber src/clash_subscriber.cpp src/clash_subscriber.h)
-set(V2raySubscriber src/v2ray_subscriber.cpp src/v2ray_subscriber.h)
-set(ShadowsocksRSubscriber src/shadowsocksr_subscriber.cpp src/shadowsocksr_subscriber.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
 set(Hash src/hash.cpp src/hash.h)
@@ -69,12 +79,11 @@ set(FileSystem src/filesystem.cpp src/filesystem.h)
 set(version src/version.cpp src/version.h)
 set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
-set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h src/enum_mapper.h)
+set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h)
 
 add_executable(ClashSubGenerator
         src/main.cpp src/config.h src/enum_mapper.h
         ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions}
-        ${Subscriber} ${ClashSubscriber} ${V2raySubscriber} ${ShadowsocksRSubscriber}
-        ${utils} ${Hash} ${FileSystem} ${base64} ${ClashSubGenerator}
+        ${ProxyDecoder} ${Subscriber} ${utils} ${Hash} ${FileSystem} ${base64} ${ClashSubGenerator}
         )
-target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto stdc++fs)
+target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto ${LIBFS})

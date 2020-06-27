@@ -16,7 +16,7 @@ enum class Generator {
 };
 
 enum class SubscribeType {
-    CLASH, V2RAY, SSR
+    CLASH, OTHER
 };
 
 struct Config {

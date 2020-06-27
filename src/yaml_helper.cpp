@@ -36,7 +36,7 @@ std::string YAMLHelper::search_key(const YAML::Node &node, const std::vector<std
         }
     }
 
-    throw MissingKeyException(fmt::format("Key {} is not found", keys.front()));
+    throw MissingKeyException(fmt::format("Unable to find the required key \"{}\"", keys.front()));
 }
 
 void YAMLHelper::write_yaml(const YAML::Node &node, const std::string &file) {
