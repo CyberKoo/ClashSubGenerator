@@ -2,9 +2,9 @@
 // Created by Kotarou on 2020/3/15.
 //
 #include <iostream>
-
 #include <CLI/CLI.hpp>
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "config.h"
 #include "enum_mapper.h"

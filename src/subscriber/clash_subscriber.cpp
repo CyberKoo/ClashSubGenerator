@@ -3,6 +3,7 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "clash_subscriber.h"
 #include "../yaml_helper.h"

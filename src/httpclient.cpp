@@ -2,13 +2,13 @@
 // Created by Kotarou on 2020/3/15.
 //
 #include <spdlog/spdlog.h>
+#include <httplib.h>
 #include <version.h>
 
 #include "exception/invalid_http_status_exception.h"
 #include "exception/request_failure_exception.h"
 #include "httpclient.h"
 #include "filesystem.h"
-#include "utils.h"
 
 std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
     std::unique_ptr<httplib::Client> client;

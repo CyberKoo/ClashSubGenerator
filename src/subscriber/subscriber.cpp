@@ -3,6 +3,8 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
+
 #include "subscriber.h"
 #include "../yaml_helper.h"
 #include "../utils.h"

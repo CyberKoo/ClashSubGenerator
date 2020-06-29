@@ -5,8 +5,7 @@
 #ifndef CLASHSUBGENERATOR_CLASH_GENERATOR_H
 #define CLASHSUBGENERATOR_CLASH_GENERATOR_H
 
-#include <yaml-cpp/yaml.h>
-#include "subscriber/subscriber.h"
+#include <yaml-cpp/node/node.h>
 #include "config.h"
 
 class ClashSubGenerator {
@@ -25,8 +24,6 @@ private:
     std::string get_file_full_path(const std::string &filename);
 
     YAML::Node create_emoji_map(const std::string &provider_name);
-
-    std::unique_ptr<Subscriber> get_subscriber();
 
     YAML::Node generate_provider_configuration(const YAML::Node &node);
 

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "hash.h"
 #include "utils.h"
@@ -187,7 +188,7 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     }
 
     // merge external rule, if applied
-    if(!config.rules_uri.empty()) {
+    if (!config.rules_uri.empty()) {
         spdlog::info("External rule {} will be merged", config.rules_uri);
         RuleExtractor rule_extractor;
         rule_extractor.load(config.rules_uri);

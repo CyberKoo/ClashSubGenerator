@@ -5,6 +5,7 @@
 #include <yaml-cpp/yaml.h>
 #include <spdlog/spdlog.h>
 #include <version.h>
+#include <fstream>
 
 #include "yaml_helper.h"
 #include "httpclient.h"

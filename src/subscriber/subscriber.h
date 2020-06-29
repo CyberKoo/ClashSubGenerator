@@ -7,7 +7,7 @@
 
 #include <regex>
 #include <vector>
-#include <yaml-cpp/yaml.h>
+#include <yaml-cpp/node/node.h>
 
 class Subscriber {
 public:

@@ -3,12 +3,14 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "other_subscriber.h"
 #include "../base64.h"
 #include "../utils.h"
 #include "../httpclient.h"
 #include "../proxy_decoder/proxy_decoder.h"
+#include "../exception/csg_exeption.h"
 
 void OtherSubscriber::load(const std::string &uri) {
     auto config = HttpClient::get(uri);

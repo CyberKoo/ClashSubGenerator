@@ -3,6 +3,7 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "utils.h"
 #include "httpclient.h"

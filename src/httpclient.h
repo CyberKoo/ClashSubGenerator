@@ -5,8 +5,12 @@
 #ifndef CLASHSUBGENERATOR_HTTPCLIENT_H
 #define CLASHSUBGENERATOR_HTTPCLIENT_H
 
-#include <httplib.h>
 #include "uri.h"
+
+// forward declaration
+namespace httplib {
+    class Client;
+}
 
 class HttpClient {
 public:
