@@ -120,9 +120,6 @@ YAML::Node ClashSubGenerator::get_config(const std::string &filename, const std:
 YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, const YAML::Node &preferred_group) {
     spdlog::info("Start generating Clash configuration file");
     auto yaml_template = get_config(config.template_file, "template.yaml");
-    RuleExtractor rule_extractor;
-    rule_extractor.load(config.rules_uri);
-    auto rules = rule_extractor.get();
 
     auto group_name = node["group_name"];
     if (preferred_group.IsDefined() && preferred_group.IsScalar()) {
@@ -189,7 +186,14 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
         }
     }
 
-    YAMLHelper::node_merger(rules, yaml_template["rules"]);
+    // merge external rule, if applied
+    if(!config.rules_uri.empty()) {
+        spdlog::info("External rule {} will be merged", config.rules_uri);
+        RuleExtractor rule_extractor;
+        rule_extractor.load(config.rules_uri);
+
+        YAMLHelper::node_merger(rule_extractor.get(), yaml_template["rules"]);
+    }
 
     return yaml_template;
 }
