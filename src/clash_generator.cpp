@@ -52,10 +52,15 @@ void ClashSubGenerator::run() {
         subscriber->set_emoji_map(system_config["Global"]["location2emoji"]);
     }
 
+    // load yaml file from remote server
     subscriber->load(config.subscribe_url);
-    subscriber->grouping(config.group_min_size);
+    // set flag and parameters
+    subscriber->set_use_emoji(config.use_emoji);
+    subscriber->set_benchmarking_url(config.benchmarking_url);
     subscriber->set_exclude_amplified_node(config.exclude_amplified_proxy);
-    auto proxies = subscriber->get(config.use_emoji);
+    // perform grouping
+    subscriber->grouping(config.group_min_size);
+    auto proxies = subscriber->get();
     // auto proxy_list = get_all_proxies_name(clash_config);
     if (config.generator == Generator::PROVIDER) {
         proxies = generate_provider_configuration(proxies);
@@ -172,7 +177,8 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     // insert node when no anchor defined
     if (!anchor_replaced) {
         spdlog::debug("Anchor group not found, insert generated group to the end");
-        auto group_node = YAMLHelper::create_proxy_group(anchor_group_name);
+        auto group_node = YAMLHelper::create_proxy_group(anchor_group_name, ProxyGroupType::SELECT,
+                                                         config.benchmarking_url);
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
     }
@@ -232,10 +238,11 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
         YAMLHelper::write_yaml(provider_proxies, get_file_full_path(out_file));
 
         // write provider section
-        master_config["proxy-providers"][group_name] = YAMLHelper::create_provider_group("file", out_file);
+        master_config["proxy-providers"][group_name] = YAMLHelper::create_provider_group(ProviderType::FILE, out_file);
 
         // write proxy groups
-        auto proxy_group = YAMLHelper::create_proxy_group(group_name);
+        auto proxy_group = YAMLHelper::create_proxy_group(group_name, ProxyGroupType::URL_TEST,
+                                                          config.benchmarking_url);
         YAMLHelper::node_renamer(proxy_group, "proxies", "use");
         proxy_group["use"].push_back(group_name);
         master_config["groups"].push_back(proxy_group);

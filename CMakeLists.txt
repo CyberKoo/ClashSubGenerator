@@ -82,7 +82,7 @@ set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
 set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h)
 
 add_executable(ClashSubGenerator
-        src/main.cpp src/config.h src/enum_mapper.h
+        src/main.cpp src/config.h src/enum_mapper.h src/enumerate.h
         ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions}
         ${ProxyDecoder} ${Subscriber} ${utils} ${Hash} ${FileSystem} ${base64} ${ClashSubGenerator}
         )

@@ -36,6 +36,8 @@ int main(int argc, char *argv[]) {
     gen_opts->add_option("-S,--syntax", config.syntax, "Syntax of generated file")
             ->required(false)->default_val(Syntax::MODERN)
             ->transform(CLI::CheckedTransformer(EnumMapper::get_syntax_mapper(), CLI::ignore_case));
+    gen_opts->add_option("-b,--benchmarking_url", config.benchmarking_url, "Speed benchmarking url")
+            ->default_str("http://www.bing.com");
     gen_opts->add_option("-G,--generator", config.generator, "Generated format")->required(false)
             ->default_val(Generator::CONFIG)->transform(
                     CLI::CheckedTransformer(EnumMapper::get_generator_mapper(), CLI::ignore_case));
@@ -61,7 +63,7 @@ int main(int argc, char *argv[]) {
     // debug mode
     cliApp.add_flag("-d,--debug", config.debug, "Enable debug mode")
             ->default_val(false)->required(false);
-    // display version and exit
+    // print version and exit
     cliApp.add_flag_callback("-V,--version", []() -> void {
         std::cout << ClashSubGenerator::version() << std::endl;
         std::exit(0);

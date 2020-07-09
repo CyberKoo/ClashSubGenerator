@@ -5,6 +5,8 @@
 #ifndef CLASHSUBGENERATOR_ENUM_MAPPER_H
 #define CLASHSUBGENERATOR_ENUM_MAPPER_H
 
+#include "enumerate.h"
+
 namespace EnumMapper {
     template<class T>
     using enum_mapper_t = std::map<std::string, T>;
@@ -13,7 +15,7 @@ namespace EnumMapper {
         return std::map<std::string, SubscribeType>{
                 {"CLASH", SubscribeType::CLASH},
                 {"OTHER", SubscribeType::OTHER},
-        };;
+        };
     }
 
     enum_mapper_t<Syntax> get_syntax_mapper() {

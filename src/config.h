@@ -7,17 +7,7 @@
 
 #include <string>
 
-enum class Syntax {
-    LEGACY, MODERN
-};
-
-enum class Generator {
-    CONFIG, PROVIDER
-};
-
-enum class SubscribeType {
-    CLASH, OTHER
-};
+#include "enumerate.h"
 
 struct Config {
     bool debug;
@@ -33,6 +23,7 @@ struct Config {
     std::string config_file;
     std::string template_file;
     std::string repository_url;
+    std::string benchmarking_url;
     std::string working_directory;
 
     size_t group_min_size;

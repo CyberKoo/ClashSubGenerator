@@ -15,6 +15,10 @@
 #include "exception/missing_key_exception.h"
 #include "exception/file_system_exception.h"
 
+std::string get_group_type_name(ProxyGroupType);
+
+std::string get_provider_type_name(ProviderType);
+
 YAML::Node YAMLHelper::load_remote(const std::string &uri) {
     auto remote_config = HttpClient::get(uri);
     return YAML::Load(remote_config);
@@ -81,11 +85,11 @@ void YAMLHelper::node_merger(const YAML::Node &source_node, YAML::Node target_no
     }
 }
 
-YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, const std::string &type,
+YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType,
                                           const std::string &url, int interval) {
     auto group_content = YAML::Node();
     group_content["name"] = YAML::Node(group_name);
-    group_content["type"] = YAML::Node(type);
+    group_content["type"] = YAML::Node(get_group_type_name(proxyGroupType));
     group_content["url"] = YAML::Node(url);
     group_content["interval"] = YAML::Node(interval);
     group_content["proxies"] = YAML::Node(YAML::NodeType::Sequence);
@@ -93,18 +97,49 @@ YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, const s
     return group_content;
 }
 
-YAML::Node YAMLHelper::create_provider_group(const std::string &type, const std::string &path, const std::string &url,
+YAML::Node YAMLHelper::create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
                                              bool hc_enable, const std::string &hc_url, int hc_interval) {
     auto group_content = YAML::Node();
-    group_content["type"] = YAML::Node(type);
-    group_content["path"] = YAML::Node(path);
-    if (!url.empty()) {
-        group_content["url"] = YAML::Node(url);
+    group_content["type"] = YAML::Node(get_provider_type_name(providerType));
+
+    if (providerType == ProviderType::HTTP) {
+        if (!url.empty()) {
+            group_content["url"] = YAML::Node(url);
+        } else {
+            // should throw an exception here,
+            // provider type http must have a valid url
+        }
     }
+
+    group_content["path"] = YAML::Node(path);
     group_content["health-check"] = YAML::Node(YAML::NodeType::Map);
     group_content["health-check"]["enable"] = YAML::Node(hc_enable);
     group_content["health-check"]["url"] = YAML::Node(hc_url);
     group_content["health-check"]["interval"] = YAML::Node(hc_interval);
 
     return group_content;
+}
+
+std::string get_group_type_name(ProxyGroupType proxyGroupType) {
+    switch (proxyGroupType) {
+        case ProxyGroupType::SELECT:
+            return "select";
+        case ProxyGroupType::RELAY:
+            return "relay";
+        case ProxyGroupType::URL_TEST:
+            return "url-test";
+        case ProxyGroupType::FALLBACK:
+            return "fallback";
+        case ProxyGroupType::LOAD_BALANCE:
+            return "load-balance";
+    }
+}
+
+std::string get_provider_type_name(ProviderType providerType) {
+    switch (providerType) {
+        case ProviderType::FILE:
+            return "file";
+        case ProviderType::HTTP:
+            return "http";
+    }
 }

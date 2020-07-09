@@ -21,7 +21,7 @@ public:
 
     virtual void grouping(size_t group_min_size);
 
-    virtual YAML::Node get(bool use_emoji);
+    virtual YAML::Node get();
 
     void set_provider(const YAML::Node &_provider);
 
@@ -34,6 +34,10 @@ public:
     void set_grouping(bool flag);
 
     void set_regex_collapse(bool flag);
+
+    void set_use_emoji(bool _use_emoji);
+
+    void set_benchmarking_url(const std::string &name);
 
 protected:
     struct NameAttribute {
@@ -56,6 +60,8 @@ protected:
     YAML::Node provider;
     YAML::Node emoji_map;
     std::regex name_parser;
+    std::string benchmarking_url;
+    bool use_emoji;
     bool regex_collapse;
     bool enable_grouping;
     bool exclude_amplified_node;
