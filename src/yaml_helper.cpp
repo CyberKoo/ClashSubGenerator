@@ -14,6 +14,7 @@
 #include "exception/file_write_exception.h"
 #include "exception/missing_key_exception.h"
 #include "exception/file_system_exception.h"
+#include "exception/invalid_value_exception.h"
 
 std::string get_group_type_name(ProxyGroupType);
 
@@ -106,8 +107,7 @@ YAML::Node YAMLHelper::create_provider_group(ProviderType providerType, const st
         if (!url.empty()) {
             group_content["url"] = YAML::Node(url);
         } else {
-            // should throw an exception here,
-            // provider type http must have a valid url
+            throw MissingKeyException("Provider type http must be used with a valid url");
         }
     }
 
@@ -133,6 +133,8 @@ std::string get_group_type_name(ProxyGroupType proxyGroupType) {
         case ProxyGroupType::LOAD_BALANCE:
             return "load-balance";
     }
+
+    throw InvalidValueException("The value of enumerate ProxyGroupType is invalid");
 }
 
 std::string get_provider_type_name(ProviderType providerType) {
@@ -142,4 +144,6 @@ std::string get_provider_type_name(ProviderType providerType) {
         case ProviderType::HTTP:
             return "http";
     }
+
+    throw InvalidValueException("The value of enumerate ProviderType is invalid");
 }
