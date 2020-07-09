@@ -11,6 +11,8 @@ class VmessDecoder : public ProxyDecoder {
 public:
     VmessDecoder() = default;
 
+    ~VmessDecoder() override = default;
+
     YAML::Node decode_config(std::string &content) override;
 
 private:

@@ -11,6 +11,8 @@ class ShadowsocksDecoder : public ProxyDecoder {
 public:
     ShadowsocksDecoder() = default;
 
+    ~ShadowsocksDecoder() override = default;
+
     YAML::Node decode_config(std::string &content) override;
 };
 

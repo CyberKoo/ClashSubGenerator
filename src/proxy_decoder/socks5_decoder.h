@@ -9,6 +9,10 @@
 
 class Socks5Decoder : public ProxyDecoder {
 public:
+    Socks5Decoder() = default;
+
+    ~Socks5Decoder() override = default;
+
     YAML::Node decode_config(std::string &content) override;
 };
 

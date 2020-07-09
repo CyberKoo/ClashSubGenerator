@@ -10,10 +10,11 @@
 
 class ProxyDecoder {
 public:
+    virtual ~ProxyDecoder() = default;
+
     static YAML::Node decode(std::string &content);
 
     virtual YAML::Node decode_config(std::string &content) = 0;
-
 protected:
     static std::string decode_base64(std::string &data);
 

@@ -12,6 +12,8 @@ class ShadowsocksRDecoder : public ProxyDecoder {
 public:
     ShadowsocksRDecoder() = default;
 
+    ~ShadowsocksRDecoder() override = default;
+
     YAML::Node decode_config(std::string &content) override;
 
     static std::map<std::string, std::string> get_ssr_parameters(std::string &query_string);
