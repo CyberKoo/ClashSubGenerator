@@ -3,9 +3,11 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
+
 #include "subscriber.h"
-#include "yaml_helper.h"
-#include "utils.h"
+#include "../yaml_helper.h"
+#include "../utils.h"
 
 Subscriber::Subscriber() {
     this->regex_collapse = false;
@@ -106,7 +108,7 @@ void Subscriber::grouping(size_t group_min_size) {
     }
 }
 
-YAML::Node Subscriber::get(bool use_emoji) {
+YAML::Node Subscriber::get() {
     auto node = YAML::Node();
 
     node["groups"] = YAML::Node(YAML::NodeType::Sequence);
@@ -119,8 +121,8 @@ YAML::Node Subscriber::get(bool use_emoji) {
             node["group_name"].push_back(group_name);
             spdlog::debug("Processing group {}", group_name);
 
-            auto strategy = (group.first != "leftover") ? "url-test" : "select";
-            auto group_content = YAMLHelper::create_proxy_group(group_name, strategy);
+            auto proxy_group_type = (group.first != "leftover") ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
+            auto group_content = YAMLHelper::create_proxy_group(group_name, proxy_group_type, benchmarking_url);
             node["groups"].push_back(group_content);
 
             size_t counter = 1;
@@ -232,6 +234,14 @@ void Subscriber::set_grouping(bool flag) {
 
 void Subscriber::set_provider(const YAML::Node &_provider) {
     this->provider = _provider;
+}
+
+void Subscriber::set_benchmarking_url(const std::string &_benchmarking_url) {
+    this->benchmarking_url = _benchmarking_url;
+}
+
+void Subscriber::set_use_emoji(bool _use_emoji) {
+    this->use_emoji = _use_emoji;
 }
 
 void Subscriber::set_emoji_map(const YAML::Node &_emoji_map) {

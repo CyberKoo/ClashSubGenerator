@@ -7,10 +7,11 @@
 
 #include "uri.h"
 #include "utils.h"
+#include "exception/invalid_uri_exception.h"
 
 Uri Uri::Parse(const std::string &uri) {
     Uri result;
-    
+
     if (uri.empty())
         return result;
 

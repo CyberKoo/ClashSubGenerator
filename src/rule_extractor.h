@@ -5,7 +5,8 @@
 #ifndef CLASHSUBGENERATOR_RULE_EXTRACTOR_H
 #define CLASHSUBGENERATOR_RULE_EXTRACTOR_H
 
-#include <yaml-cpp/yaml.h>
+#include <set>
+#include <yaml-cpp/node/node.h>
 
 class RuleExtractor {
 public:

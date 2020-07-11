@@ -2,13 +2,13 @@
 // Created by Kotarou on 2020/3/15.
 //
 #include <spdlog/spdlog.h>
+#include <httplib.h>
 #include <version.h>
 
 #include "exception/invalid_http_status_exception.h"
 #include "exception/request_failure_exception.h"
 #include "httpclient.h"
 #include "filesystem.h"
-#include "utils.h"
 
 std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
     std::unique_ptr<httplib::Client> client;
@@ -18,7 +18,7 @@ std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
         client = get_https_client(uri.getHost(), uri.getPort());
     }
 
-    client->set_timeout_sec(5);
+    client->set_connection_timeout(5);
     client->set_read_timeout(5, 1000);
     client->set_follow_location(true);
 
@@ -62,7 +62,7 @@ std::unique_ptr<httplib::Client> HttpClient::get_https_client(const std::string 
 std::string HttpClient::get_ca_path() {
     static std::string path;
     static bool inited = false;
-    static const std::vector<std::string> search_path{
+    constexpr char search_path[][50]{
             "/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
             "/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
             "/etc/ssl/ca-bundle.pem",                            // OpenSUSE

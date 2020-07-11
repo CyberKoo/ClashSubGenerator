@@ -21,13 +21,21 @@ endif (CMAKE_BUILD_TYPE MATCHES Release)
 # define version
 set(CSG_VERSION_MAJOR 0)
 set(CSG_VERSION_MINOR 2)
-set(CSG_VERSION_PATCH 0)
+set(CSG_VERSION_PATCH 1)
 set(CSG_DEVELOPMENT OFF)
 set(CSG_RELEASE_INFO RELEASE)
 
 if (CSG_DEVELOPMENT)
     include(GitVersion)
     set(CSG_RELEASE_INFO ${GIT_VERSION})
+endif ()
+
+# require filesystem module
+#find_package(Filesystem REQUIRED)
+if (APPLE)
+    set(LIBFS c++)
+else ()
+    set(LIBFS stdc++fs)
 endif ()
 
 # generate version.h
@@ -52,14 +60,18 @@ add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT)
 add_subdirectory(deps/cpp-httplib)
 add_subdirectory(deps/CLI11)
 
+# glob files
 file(GLOB_RECURSE Exceptions "src/exception/*.h")
+file(GLOB_RECURSE ProxyDecoderHeaders "src/proxy_decoder/*.h")
+file(GLOB_RECURSE ProxyDecoderSources "src/proxy_decoder/*.cpp")
+file(GLOB_RECURSE SubscriberHeaders "src/subscriber/*.h")
+file(GLOB_RECURSE SubscriberSources "src/subscriber/*.cpp")
+
+#
+set(Subscriber ${SubscriberHeaders} ${SubscriberSources})
+set(ProxyDecoder ${ProxyDecoderHeaders} ${ProxyDecoderSources})
 set(utils src/utils.cpp src/utils.h)
 set(RuleExtractor src/rule_extractor.cpp src/rule_extractor.h)
-set(Subscriber src/subscriber.cpp src/subscriber.h)
-set(ClashSubscriber src/clash_subscriber.cpp src/clash_subscriber.h)
-set(V2raySubscriber src/v2ray_subscriber.cpp src/v2ray_subscriber.h)
-set(ShadowsocksSubscriber src/shadowsocks_subscriber.cpp src/shadowsocks_subscriber.h)
-set(ShadowsocksRSubscriber src/shadowsocksr_subscriber.cpp src/shadowsocksr_subscriber.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
 set(Hash src/hash.cpp src/hash.h)
@@ -70,23 +82,8 @@ set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
 set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h)
 
 add_executable(ClashSubGenerator
-        src/main.cpp
-        src/config.h
-        ${URI}
-        ${HttpClient}
-        ${RuleExtractor}
-        ${Subscriber}
-        ${ClashSubscriber}
-        ${V2raySubscriber}
-        ${ShadowsocksSubscriber}
-        ${ShadowsocksRSubscriber}
-        ${YAMLHelper}
-        ${version}
-        ${utils}
-        ${Hash}
-        ${FileSystem}
-        ${base64}
-        ${Exceptions}
-        ${ClashSubGenerator}
+        src/main.cpp src/config.h src/enum_mapper.h src/enumerate.h
+        ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions}
+        ${ProxyDecoder} ${Subscriber} ${utils} ${Hash} ${FileSystem} ${base64} ${ClashSubGenerator}
         )
-target_link_libraries(ClashSubGenerator yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto stdc++fs)
+target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto ${LIBFS})

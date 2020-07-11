@@ -5,8 +5,6 @@
 #ifndef CLASHSUBGENERATOR_URI_H
 #define CLASHSUBGENERATOR_URI_H
 
-#include "exception/invalid_uri_exception.h"
-
 class Uri {
 public:
     static Uri Parse(const std::string &uri);

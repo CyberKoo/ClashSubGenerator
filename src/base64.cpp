@@ -17,13 +17,13 @@ using bio_ptr = std::unique_ptr<BIO, decltype(BIOFreeAll)>;
 
 std::string padding(const std::string &data) {
     if (data.size() % 3 != 0) {
-        auto data_padded = data;
+        auto new_data = data;
         auto padding = 3 - (data.size() % 3);
         for (unsigned long i = 0; i < padding; ++i) {
-            data_padded += "=";
+            new_data += "=";
         }
 
-        return data_padded;
+        return new_data;
     }
 
     return data;

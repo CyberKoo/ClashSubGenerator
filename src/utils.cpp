@@ -7,8 +7,6 @@
 #include <vector>
 #include <algorithm>
 
-#include <sys/stat.h>
-
 #include "utils.h"
 
 std::string Utils::str_tolower(std::string s) {
@@ -16,13 +14,15 @@ std::string Utils::str_tolower(std::string s) {
     return s;
 }
 
-std::vector<std::string> Utils::split(const std::string &s, char delim) {
+std::vector<std::string> Utils::split(const std::string &s, const char delim) {
     std::stringstream ss(s);
     std::string item;
     std::vector<std::string> elements;
+
     while (std::getline(ss, item, delim)) {
         elements.emplace_back(std::move(item));
     }
+
     return elements;
 }
 

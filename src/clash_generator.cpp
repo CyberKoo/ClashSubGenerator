@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "hash.h"
 #include "utils.h"
@@ -12,12 +13,8 @@
 #include "yaml_helper.h"
 #include "rule_extractor.h"
 #include "clash_generator.h"
-#include "clash_subscriber.h"
-#include "v2ray_subscriber.h"
-#include "shadowsocks_subscriber.h"
-#include "shadowsocksr_subscriber.h"
+#include "subscriber/subscriber_factory.h"
 #include "exception/file_system_exception.h"
-#include "exception/unsupported_configuration.h"
 
 void ClashSubGenerator::run() {
     spdlog::info("Configuration syntax: {}",
@@ -26,7 +23,7 @@ void ClashSubGenerator::run() {
 
     system_config = get_config(config.config_file, "sys_config.yaml");
     auto provider = system_config["Providers"][config.provider_name];
-    auto subscriber = get_subscriber();
+    auto subscriber = SubscriberFactory::make(config.subscribe_type);
 
     // provider related
     if (!config.provider_name.empty()) {
@@ -55,16 +52,30 @@ void ClashSubGenerator::run() {
         subscriber->set_emoji_map(system_config["Global"]["location2emoji"]);
     }
 
+    // load yaml file from remote server
     subscriber->load(config.subscribe_url);
-    subscriber->grouping(config.group_min_size);
+    // set flag and parameters
+    subscriber->set_use_emoji(config.use_emoji);
+    subscriber->set_benchmarking_url(config.benchmarking_url);
     subscriber->set_exclude_amplified_node(config.exclude_amplified_proxy);
-    auto proxies = subscriber->get(config.use_emoji);
+    // perform grouping
+    subscriber->grouping(config.group_min_size);
+    auto proxies = subscriber->get();
     // auto proxy_list = get_all_proxies_name(clash_config);
     if (config.generator == Generator::PROVIDER) {
         proxies = generate_provider_configuration(proxies);
     }
 
     auto clash_config = generate_configuration(proxies, provider["preferred_group"]);
+
+    // format configurations
+    constexpr char keys[][16] = {"proxies", "proxy-groups", "rules", "proxy-providers"};
+    for (const auto &key : keys) {
+        if (clash_config[key].IsDefined()) {
+            YAMLHelper::format(clash_config[key], YAML::EmitterStyle::Block, true);
+        }
+    }
+
     // convert to legacy format
     if (config.syntax == Syntax::LEGACY) {
         legacy_syntax_converter(clash_config);
@@ -115,9 +126,6 @@ YAML::Node ClashSubGenerator::get_config(const std::string &filename, const std:
 YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, const YAML::Node &preferred_group) {
     spdlog::info("Start generating Clash configuration file");
     auto yaml_template = get_config(config.template_file, "template.yaml");
-    RuleExtractor rule_extractor;
-    rule_extractor.load(config.rules_uri);
-    auto rules = rule_extractor.get();
 
     auto group_name = node["group_name"];
     if (preferred_group.IsDefined() && preferred_group.IsScalar()) {
@@ -136,7 +144,6 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     }
 
     YAMLHelper::node_merger(node["proxies"], yaml_template["proxies"]);
-    YAMLHelper::node_merger(rules, yaml_template["rules"]);
     YAMLHelper::node_merger(node["groups"], yaml_template["proxy-groups"]);
     // append proxy-providers
     if (node["proxy-providers"].IsDefined() && node["proxy-providers"].IsMap()) {
@@ -170,9 +177,29 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     // insert node when no anchor defined
     if (!anchor_replaced) {
         spdlog::debug("Anchor group not found, insert generated group to the end");
-        auto group_node = YAMLHelper::create_proxy_group(anchor_group_name);
+        auto group_node = YAMLHelper::create_proxy_group(anchor_group_name, ProxyGroupType::SELECT,
+                                                         config.benchmarking_url);
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
+    }
+
+    // replace anchor in user-defined rules
+    for (auto rule : yaml_template["rules"]) {
+        auto s_rule = rule.as<std::string>();
+        if (s_rule.find(anchor) != std::string::npos) {
+            Utils::replace(s_rule, {{anchor, anchor_group_name}});
+            auto node_rule = YAML::Node(rule);
+            node_rule = s_rule;
+        }
+    }
+
+    // merge external rule, if applied
+    if (!config.rules_uri.empty()) {
+        spdlog::info("External rule {} will be merged", config.rules_uri);
+        RuleExtractor rule_extractor;
+        rule_extractor.load(config.rules_uri);
+
+        YAMLHelper::node_merger(rule_extractor.get(), yaml_template["rules"]);
     }
 
     return yaml_template;
@@ -210,10 +237,12 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
         auto out_file = fmt::format("providers/{}.yaml", Hash::md5(group_name));
         YAMLHelper::write_yaml(provider_proxies, get_file_full_path(out_file));
 
-        auto group_node = YAMLHelper::create_provider_group("file", out_file);
-        master_config["proxy-providers"][group_name] = group_node;
+        // write provider section
+        master_config["proxy-providers"][group_name] = YAMLHelper::create_provider_group(ProviderType::FILE, out_file);
 
-        auto proxy_group = YAMLHelper::create_proxy_group(group_name);
+        // write proxy groups
+        auto proxy_group = YAMLHelper::create_proxy_group(group_name, ProxyGroupType::URL_TEST,
+                                                          config.benchmarking_url);
         YAMLHelper::node_renamer(proxy_group, "proxies", "use");
         proxy_group["use"].push_back(group_name);
         master_config["groups"].push_back(proxy_group);
@@ -242,19 +271,4 @@ std::vector<std::string> ClashSubGenerator::get_all_proxies_name(const YAML::Nod
     }
 
     return name_list;
-}
-
-std::unique_ptr<Subscriber> ClashSubGenerator::get_subscriber() {
-    switch (config.subscribe_type) {
-        case SubscribeType::CLASH:
-            return std::make_unique<ClashSubscriber>();
-        case SubscribeType::V2RAY:
-            return std::make_unique<V2raySubscriber>();
-        case SubscribeType::SS:
-            return std::make_unique<ShadowsocksSubscriber>();
-        case SubscribeType::SSR:
-            return std::make_unique<ShadowsocksRSubscriber>();
-    }
-
-    throw UnsupportedConfiguration(fmt::format("Unsupported subscribe type {}", config.subscribe_type));
 }
