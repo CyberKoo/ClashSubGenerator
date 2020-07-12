@@ -21,13 +21,14 @@ endif (CMAKE_BUILD_TYPE MATCHES Release)
 # define version
 set(CSG_VERSION_MAJOR 0)
 set(CSG_VERSION_MINOR 2)
-set(CSG_VERSION_PATCH 1)
-set(CSG_DEVELOPMENT OFF)
-set(CSG_RELEASE_INFO RELEASE)
+set(CSG_VERSION_PATCH 2)
+set(CSG_DEVELOPMENT ON)
 
 if (CSG_DEVELOPMENT)
     include(GitVersion)
     set(CSG_RELEASE_INFO ${GIT_VERSION})
+else ()
+    set(CSG_RELEASE_INFO RELEASE)
 endif ()
 
 # require filesystem module

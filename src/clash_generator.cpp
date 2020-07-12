@@ -78,6 +78,7 @@ void ClashSubGenerator::run() {
 
     // convert to legacy format
     if (config.syntax == Syntax::LEGACY) {
+        spdlog::warn("Legacy configuration is deprecated, this will be removed on v0.3.0");
         legacy_syntax_converter(clash_config);
     }
 
@@ -251,6 +252,7 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
     return master_config;
 }
 
+[[deprecated]]
 void ClashSubGenerator::legacy_syntax_converter(const YAML::Node &node) {
     YAMLHelper::node_renamer(node, {
             {"proxies",         "Proxy"},
