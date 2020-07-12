@@ -4,6 +4,8 @@
 
 #include <map>
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
+
 #include "shadowsocksr_decoder.h"
 #include "../exception/unsupported_configuration.h"
 #include "../utils.h"

@@ -37,7 +37,9 @@ int main(int argc, char *argv[]) {
             ->required(false)->default_val(Syntax::MODERN)
             ->transform(CLI::CheckedTransformer(EnumMapper::get_syntax_mapper(), CLI::ignore_case));
     gen_opts->add_option("-b,--benchmarking_url", config.benchmarking_url, "Speed benchmarking url")
-            ->default_str("http://www.bing.com");
+            ->default_val("http://www.bing.com");
+    gen_opts->add_option("-i,--benchmarking_interval", config.benchmarking_interval, "Speed benchmarking interval")
+            ->default_val(300u);
     gen_opts->add_option("-G,--generator", config.generator, "Generated format")->required(false)
             ->default_val(Generator::CONFIG)->transform(
                     CLI::CheckedTransformer(EnumMapper::get_generator_mapper(), CLI::ignore_case));

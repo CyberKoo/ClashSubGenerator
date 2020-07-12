@@ -13,6 +13,8 @@ Subscriber::Subscriber() {
     this->regex_collapse = false;
     this->enable_grouping = false;
     this->exclude_amplified_node = false;
+    this->use_emoji = false;
+    this->interval = 300;
 }
 
 Subscriber::~Subscriber() = default;
@@ -122,7 +124,7 @@ YAML::Node Subscriber::get() {
             spdlog::debug("Processing group {}", group_name);
 
             auto proxy_group_type = (group.first != "leftover") ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
-            auto group_content = YAMLHelper::create_proxy_group(group_name, proxy_group_type, benchmarking_url);
+            auto group_content = YAMLHelper::create_proxy_group(group_name, proxy_group_type, benchmarking_url, interval);
             node["groups"].push_back(group_content);
 
             size_t counter = 1;
@@ -242,6 +244,10 @@ void Subscriber::set_benchmarking_url(const std::string &_benchmarking_url) {
 
 void Subscriber::set_use_emoji(bool _use_emoji) {
     this->use_emoji = _use_emoji;
+}
+
+void Subscriber::set_benchmarking_interval(unsigned _interval) {
+    this->interval = _interval;
 }
 
 void Subscriber::set_emoji_map(const YAML::Node &_emoji_map) {

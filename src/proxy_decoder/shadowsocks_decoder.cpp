@@ -3,6 +3,8 @@
 //
 
 #include <fmt/format.h>
+#include <yaml-cpp/yaml.h>
+
 #include "shadowsocks_decoder.h"
 #include "../utils.h"
 #include "../exception/unsupported_configuration.h"

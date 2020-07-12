@@ -37,6 +37,8 @@ public:
 
     void set_use_emoji(bool _use_emoji);
 
+    void set_benchmarking_interval(unsigned _interval);
+
     void set_benchmarking_url(const std::string &name);
 
 protected:
@@ -61,6 +63,7 @@ protected:
     YAML::Node emoji_map;
     std::regex name_parser;
     std::string benchmarking_url;
+    unsigned interval;
     bool use_emoji;
     bool regex_collapse;
     bool enable_grouping;

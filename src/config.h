@@ -26,6 +26,8 @@ struct Config {
     std::string benchmarking_url;
     std::string working_directory;
 
+    unsigned benchmarking_interval;
+
     size_t group_min_size;
     SubscribeType subscribe_type;
     Generator generator;

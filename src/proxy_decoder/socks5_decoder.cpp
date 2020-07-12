@@ -3,6 +3,7 @@
 //
 
 #include <fmt/format.h>
+#include <yaml-cpp/yaml.h>
 
 #include "socks5_decoder.h"
 #include "../utils.h"

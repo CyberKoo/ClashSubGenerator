@@ -87,7 +87,7 @@ void YAMLHelper::node_merger(const YAML::Node &source_node, YAML::Node target_no
 }
 
 YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType,
-                                          const std::string &url, int interval) {
+                                          const std::string &url, unsigned interval) {
     auto group_content = YAML::Node();
     group_content["name"] = YAML::Node(group_name);
     group_content["type"] = YAML::Node(get_group_type_name(proxyGroupType));
@@ -99,7 +99,7 @@ YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, ProxyGr
 }
 
 YAML::Node YAMLHelper::create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
-                                             bool hc_enable, const std::string &hc_url, int hc_interval) {
+                                             bool hc_enable, const std::string &hc_url, unsigned hc_interval) {
     auto group_content = YAML::Node();
     group_content["type"] = YAML::Node(get_provider_type_name(providerType));
 

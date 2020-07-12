@@ -16,11 +16,10 @@ namespace YAMLHelper {
     YAML::Node load_local(const std::string &path);
 
     YAML::Node create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType, const std::string &url,
-                                  int interval = 120);
+                                  unsigned interval);
 
-    YAML::Node create_provider_group(ProviderType providerType, const std::string &path = "",
-                                     const std::string &url = "", bool hc_enable = true,
-                                     const std::string &hc_url = "http://www.bing.com", int hc_interval = 120);
+    YAML::Node create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
+                                     bool hc_enable, const std::string &hc_url, unsigned hc_interval);
 
     void write_yaml(const YAML::Node &node, const std::string &file);
 
