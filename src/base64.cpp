@@ -17,7 +17,7 @@ using bio_ptr = std::unique_ptr<BIO, decltype(BIOFreeAll)>;
 
 std::string padding(const std::string &data) {
     // under normal circumstance this value should never be 1,
-    // the reminder value can be only 0, 2, 3
+    // the reminder value can only be 0, 2 or 3
     unsigned reminder = data.size() % 4;
     if (reminder > 1) {
         auto new_data = data;
