@@ -11,14 +11,7 @@
 #include "../utils.h"
 
 YAML::Node ShadowsocksRDecoder::decode_config(std::string &content) {
-    throw UnsupportedConfiguration("ShadowsocksR is not supported yet");
-
     // decoding
-    Utils::replace(content, {
-                           {"_", "/"},
-                           {"-", "+"}
-                   }
-    );
     auto decoded_config = decode_base64(content);
 
     // parsing
@@ -26,15 +19,25 @@ YAML::Node ShadowsocksRDecoder::decode_config(std::string &content) {
     auto main_config = Utils::split(ssr[0], ':');
 
     YAML::Node node(YAML::NodeType::Map);
-    node["ip"] = main_config[0];
-    node["port"] = main_config[1];
-    node["protocol"] = main_config[2];
-    node["method"] = main_config[3];
-    node["obfuscate"] = main_config[4];
-    node["password"] = decode_base64(main_config[5]);
 
     // additional parameters
-    node["parameters"] = get_ssr_parameters(ssr[1]);
+    auto parameters = get_ssr_parameters(ssr[1]);
+    node["name"] = parameters["remarks"];
+    node["type"] = "ssr";
+    node["server"] = main_config[0];
+    node["port"] = main_config[1];
+    node["protocol"] = main_config[2];
+    node["cipher"] = main_config[3];
+    node["obfs"] = main_config[4];
+    node["password"] = decode_base64(main_config[5]);
+
+    if (parameters.find("obfsparam") != parameters.end()) {
+        node["obfs-param"] = parameters["obfsparam"];
+    }
+
+    if (parameters.find("protoparam") != parameters.end()) {
+        node["protocol-param"] = parameters["protoparam"];
+    }
 
     return node;
 }
@@ -58,4 +61,14 @@ std::map<std::string, std::string> ShadowsocksRDecoder::get_ssr_parameters(std::
     }
 
     return parameters;
+}
+
+std::string ShadowsocksRDecoder::decode_base64(std::string &data) {
+    Utils::replace(data, {
+                           {"_", "/"},
+                           {"-", "+"}
+                   }
+    );
+
+    return ProxyDecoder::decode_base64(data);
 }

@@ -16,6 +16,9 @@ public:
 
     YAML::Node decode_config(std::string &content) override;
 
+protected:
+    static std::string decode_base64(std::string &data);
+
     static std::map<std::string, std::string> get_ssr_parameters(std::string &query_string);
 };
 
