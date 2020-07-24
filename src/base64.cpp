@@ -16,10 +16,15 @@ const auto BIOFreeAll = [](BIO *p) {
 using bio_ptr = std::unique_ptr<BIO, decltype(BIOFreeAll)>;
 
 std::string padding(const std::string &data) {
-    if (data.size() % 3 != 0) {
+    // under normal circumstance this value should never be 1,
+    // the reminder value can be only 0, 2, 3
+    unsigned reminder = data.size() % 4;
+    if (reminder > 1) {
         auto new_data = data;
-        auto padding = 3 - (data.size() % 3);
-        for (unsigned long i = 0; i < padding; ++i) {
+
+        if (reminder == 2) {
+            new_data += "==";
+        } else if (reminder == 3) {
             new_data += "=";
         }
 
