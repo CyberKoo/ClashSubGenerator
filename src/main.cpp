@@ -33,9 +33,6 @@ int main(int argc, char *argv[]) {
     gen_opts->add_option("-m,--min_group_size", config.group_min_size, "Minimum size of a group")
             ->required(false)->default_val(2)->check(CLI::Range(1, 10));
     gen_opts->add_option("-r,--rules_url", config.rules_uri, "External Rules url");
-    gen_opts->add_option("-S,--syntax", config.syntax, "Syntax of generated file")
-            ->required(false)->default_val(Syntax::MODERN)
-            ->transform(CLI::CheckedTransformer(EnumMapper::get_syntax_mapper(), CLI::ignore_case));
     gen_opts->add_option("-b,--benchmarking_url", config.benchmarking_url, "Speed benchmarking url")
             ->default_val("http://www.bing.com");
     gen_opts->add_option("-i,--benchmarking_interval", config.benchmarking_interval, "Speed benchmarking interval")

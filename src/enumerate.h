@@ -5,10 +5,6 @@
 #ifndef CLASHSUBGENERATOR_ENUM_H
 #define CLASHSUBGENERATOR_ENUM_H
 
-enum class Syntax {
-    LEGACY, MODERN
-};
-
 enum class Generator {
     CONFIG, PROVIDER
 };

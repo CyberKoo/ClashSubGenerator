@@ -17,8 +17,6 @@
 #include "exception/file_system_exception.h"
 
 void ClashSubGenerator::run() {
-    spdlog::info("Configuration syntax: {}",
-                 config.syntax == Syntax::MODERN ? "Modern (requires Clash version > v0.18.0)" : "Legacy");
     spdlog::info("Configuration format: {}", config.generator == Generator::PROVIDER ? "Provider" : "Config");
 
     system_config = get_config(config.config_file, "sys_config.yaml");
@@ -75,12 +73,6 @@ void ClashSubGenerator::run() {
         if (clash_config[key].IsDefined()) {
             YAMLHelper::format(clash_config[key], YAML::EmitterStyle::Block, true);
         }
-    }
-
-    // convert to legacy format
-    if (config.syntax == Syntax::LEGACY) {
-        spdlog::warn("Legacy configuration is deprecated, this will be removed on v0.3.0");
-        legacy_syntax_converter(clash_config);
     }
 
     // write config.yaml
@@ -254,16 +246,6 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
     }
 
     return master_config;
-}
-
-[[deprecated]]
-void ClashSubGenerator::legacy_syntax_converter(const YAML::Node &node) {
-    YAMLHelper::node_renamer(node, {
-            {"proxies",         "Proxy"},
-            {"proxy-groups",    "Proxy Group"},
-            {"rules",           "Rule"},
-            {"proxy-providers", "proxy-provider"}
-    });
 }
 
 std::vector<std::string> ClashSubGenerator::get_all_proxies_name(const YAML::Node &node) {

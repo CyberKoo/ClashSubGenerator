@@ -18,13 +18,6 @@ namespace EnumMapper {
         };
     }
 
-    enum_mapper_t<Syntax> get_syntax_mapper() {
-        return std::map<std::string, Syntax>{
-                {"MODERN", Syntax::MODERN},
-                {"LEGACY", Syntax::LEGACY}
-        };
-    }
-
     enum_mapper_t<Generator> get_generator_mapper() {
         return std::map<std::string, Generator>{
                 {"CONFIG",   Generator::CONFIG},

@@ -31,6 +31,5 @@ struct Config {
     size_t group_min_size;
     SubscribeType subscribe_type;
     Generator generator;
-    Syntax syntax;
 };
 #endif //CLASHSUBGENERATOR_CONFIG_H
