@@ -3,7 +3,7 @@ project(ClashSubGenerator)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
@@ -20,9 +20,9 @@ endif (CMAKE_BUILD_TYPE MATCHES Release)
 
 # define version
 set(CSG_VERSION_MAJOR 0)
-set(CSG_VERSION_MINOR 2)
-set(CSG_VERSION_PATCH 2)
-set(CSG_DEVELOPMENT OFF)
+set(CSG_VERSION_MINOR 3)
+set(CSG_VERSION_PATCH 0)
+set(CSG_DEVELOPMENT ON)
 
 if (CSG_DEVELOPMENT)
     include(GitVersion)
@@ -32,12 +32,7 @@ else ()
 endif ()
 
 # require filesystem module
-#find_package(Filesystem REQUIRED)
-if (APPLE)
-    set(LIBFS c++)
-else ()
-    set(LIBFS stdc++fs)
-endif ()
+find_package(Filesystem REQUIRED)
 
 # generate version.h
 include_directories(${CMAKE_BINARY_DIR})
@@ -87,4 +82,4 @@ add_executable(ClashSubGenerator
         ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions}
         ${ProxyDecoder} ${Subscriber} ${utils} ${Hash} ${FileSystem} ${base64} ${ClashSubGenerator}
         )
-target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto ${LIBFS})
+target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto std::filesystem)
