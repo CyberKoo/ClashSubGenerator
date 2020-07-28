@@ -5,6 +5,7 @@
 #ifndef CLASHSUBGENERATOR_SUBSCRIBER_H
 #define CLASHSUBGENERATOR_SUBSCRIBER_H
 
+#include <map>
 #include <regex>
 #include <vector>
 #include <yaml-cpp/node/node.h>
