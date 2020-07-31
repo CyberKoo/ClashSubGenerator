@@ -127,13 +127,14 @@ YAML::Node Subscriber::get() {
             auto group_content = YAMLHelper::create_proxy_group(group_name, proxy_group_type, benchmarking_url, interval);
             node["groups"].push_back(group_content);
 
-            size_t counter = 1;
+            std::map<std::string, size_t> location_counter;
             for (const auto &proxy: group.second) {
                 const auto name_generator = [&](const YAML::Node &attributes) {
                     auto id = attributes["id"].as<int>();
                     auto name = attributes["location"].as<std::string>();
                     if (id == -1) {
-                        id = counter++;
+                        location_counter.try_emplace(name, 0);
+                        id = ++location_counter[name];
                     }
 
                     return use_emoji ? fmt::format("{}{:>02d}", name2emoji(name), id) : proxy["name"].as<std::string>();
@@ -141,7 +142,7 @@ YAML::Node Subscriber::get() {
 
                 if (proxy.IsDefined() && proxy.IsMap()) {
                     auto proxy_ref = proxy;
-                    std::string proxy_name = proxy_ref["name"].as<std::string>();
+                    auto proxy_name = proxy_ref["name"].as<std::string>();
                     spdlog::trace("Add proxy {} to group {}", proxy_name, group_name);
 
                     // only update name when grouping is enabled
@@ -207,14 +208,15 @@ Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
 }
 
 void Subscriber::append_attributes(const Subscriber::NameAttribute &attribute, YAML::Node &node) {
-    node["attributes"] = YAML::Node(YAML::NodeType::Map);
-    node["attributes"].force_insert("location", attribute.location);
-    node["attributes"].force_insert("id", attribute.id);
-    node["attributes"].force_insert("netflix", attribute.netflix);
-    node["attributes"].force_insert("amplification", attribute.amplification);
+    auto attributes = YAML::Node(YAML::NodeType::Map);
+    attributes["location"] = attribute.location;
+    attributes["id"] = attribute.id;
+    attributes["netflix"] = attribute.netflix;
+    attributes["amplification"] = attribute.amplification;
+    node["attributes"] = attributes;
 }
 
-std::vector<std::string> Subscriber::get_regex_result(const std::smatch &result) {
+std::vector<std::string> Subscriber::get_regex_result(const std::smatch &result) const {
     std::vector<std::string> regex_result;
     std::transform(result.begin(), result.end(), std::back_inserter(regex_result), [](const auto &m) {
         return m.str();

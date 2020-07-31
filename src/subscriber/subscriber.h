@@ -50,7 +50,7 @@ protected:
         float amplification;
     };
 
-    std::vector<std::string> get_regex_result(const std::smatch &result);
+    std::vector<std::string> get_regex_result(const std::smatch &result) const;
 
     NameAttribute parse_name(const std::string &name);
 
