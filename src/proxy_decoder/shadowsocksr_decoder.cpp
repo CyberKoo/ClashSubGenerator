@@ -11,8 +11,11 @@
 #include "../utils.h"
 
 YAML::Node ShadowsocksRDecoder::decode_config(std::string &content) {
+    spdlog::trace("using ssr decoder to decode config {}", content);
+
     // decoding
     auto decoded_config = decode_base64(content);
+    spdlog::trace("decoded config {}", decoded_config);
 
     // parsing
     auto ssr = Utils::split(decoded_config, '/');
@@ -54,9 +57,10 @@ std::map<std::string, std::string> ShadowsocksRDecoder::get_ssr_parameters(std::
         auto map_content = Utils::split(pair, '=');
         if (map_content.size() == 2) {
             auto value = decode_base64(map_content[1]);
+            spdlog::trace("add parameter {} = {} to parameter map", map_content[0], value);
             parameters.emplace(map_content[0], value);
         } else {
-            spdlog::warn("discard parameter {}", pair);
+            spdlog::debug("discard empty parameter {}", map_content[0]);
         }
     }
 

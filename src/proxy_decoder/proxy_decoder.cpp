@@ -9,6 +9,7 @@
 #include "proxy_decoder.h"
 #include "socks5_decoder.h"
 #include "vmess_decoder.h"
+#include "trojan_decoder.h"
 #include "shadowsocks_decoder.h"
 #include "shadowsocksr_decoder.h"
 #include "../base64.h"
@@ -16,10 +17,11 @@
 #include "../exception/unsupported_configuration.h"
 
 YAML::Node ProxyDecoder::decode(std::string &content) {
-    auto result = strip(content);
-    Utils::trim(result.second);
-    auto decoder = get_decoder(result.first);
-    return decoder->decode_config(result.second);
+    auto [protocol, config] = strip_protocol(content);
+    Utils::trim(config);
+    auto decoder = get_decoder(protocol);
+    spdlog::debug("selected {} decoder for processing the raw data", protocol);
+    return decoder->decode_config(config);
 }
 
 std::string ProxyDecoder::decode_base64(std::string &data) {
@@ -27,7 +29,7 @@ std::string ProxyDecoder::decode_base64(std::string &data) {
     return Base64::to_string(decoded);
 }
 
-std::pair<std::string, std::string> ProxyDecoder::strip(std::string &uri) {
+std::pair<std::string, std::string> ProxyDecoder::strip_protocol(std::string &uri) {
     auto pos = uri.find("://");
 
     if (pos != std::string::npos) {
@@ -46,6 +48,8 @@ std::unique_ptr<ProxyDecoder> ProxyDecoder::get_decoder(const std::string &proto
         return std::make_unique<ShadowsocksRDecoder>();
     } else if (protocol == "socks") {
         return std::make_unique<Socks5Decoder>();
+    } else if (protocol == "trojan") {
+        return std::make_unique<TrojanDecoder>();
     }
 
     throw UnsupportedConfiguration(fmt::format("Unable to determine the protocol", protocol));

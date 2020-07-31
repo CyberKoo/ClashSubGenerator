@@ -79,11 +79,11 @@ std::string Utils::trim_copy(std::string s) {
 }
 
 void Utils::replace(std::string &str, const std::map<std::string, std::string> &replace_list) {
-    for (const auto &pair: replace_list) {
-        auto pos = str.find(pair.first);
+    for (const auto &[target, new_content]: replace_list) {
+        auto pos = str.find(target);
         while (pos != std::string::npos) {
-            str.replace(pos, pair.first.length(), pair.second);
-            pos = str.find(pair.first);
+            str.replace(pos, target.length(), new_content);
+            pos = str.find(target);
         }
     }
 }

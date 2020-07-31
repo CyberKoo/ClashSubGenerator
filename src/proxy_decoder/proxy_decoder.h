@@ -18,7 +18,7 @@ public:
 protected:
     static std::string decode_base64(std::string &data);
 
-    static std::pair<std::string, std::string> strip(std::string &uri);
+    static std::pair<std::string, std::string> strip_protocol(std::string &uri);
 
     static std::pair<std::string, std::string> strip_name(const std::string &content);
 
