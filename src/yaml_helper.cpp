@@ -93,6 +93,11 @@ YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, ProxyGr
     group_content["type"] = YAML::Node(get_group_type_name(proxyGroupType));
     group_content["url"] = YAML::Node(url);
     group_content["interval"] = YAML::Node(interval);
+
+    if (proxyGroupType == ProxyGroupType::URL_TEST) {
+        group_content["tolerance"] = YAML::Node(50);
+    }
+
     group_content["proxies"] = YAML::Node(YAML::NodeType::Sequence);
 
     return group_content;
