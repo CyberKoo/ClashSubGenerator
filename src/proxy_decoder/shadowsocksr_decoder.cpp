@@ -51,6 +51,11 @@ YAML::Node ShadowsocksRDecoder::decode_config(const Uri &uri) {
 }
 
 std::map<std::string, std::string> ShadowsocksRDecoder::get_ssr_parameters(std::string &query_string) {
+    // remove leading ?
+    if (query_string[0] == '?') {
+        query_string.erase(0, 1);
+    }
+
     std::map<std::string, std::string> parameters;
     auto parameter_pair = Utils::split(query_string, '&');
     for (const auto &pair : parameter_pair) {
