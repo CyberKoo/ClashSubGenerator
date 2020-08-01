@@ -70,7 +70,7 @@ Uri Uri::Parse(std::string_view uri) {
 
     // query
     if (queryStart != uri.end()) {
-        result.QueryString = std::string(queryStart, uri.end());
+        result.QueryString = std::string(queryStart + 1, uri.end());
     }
 
     return result;

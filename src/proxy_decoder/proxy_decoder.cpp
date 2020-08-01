@@ -48,7 +48,7 @@ std::pair<std::string, std::string> ProxyDecoder::strip_name(std::string_view co
     auto comment_start = content.rfind('#');
     if (comment_start != std::string::npos) {
         return std::make_pair(content.substr(comment_start + 1, content.size() - 1).data(),
-                              content.substr(0, comment_start).data());
+                              std::string(content.substr(0, comment_start)));
     }
 
     return std::make_pair("", content.data());

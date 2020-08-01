@@ -29,7 +29,7 @@ std::string HttpClient::get(const std::string &uri) {
     spdlog::debug("Fetch uri {}", uri);
     auto parse_result = Uri::Parse(uri);
     auto client = HttpClient::connect(parse_result);
-    auto response = client->Get(fmt::format("{}{}", parse_result.getPath(), parse_result.getQueryString()).c_str(),
+    auto response = client->Get(fmt::format("{}?{}", parse_result.getPath(), parse_result.getQueryString()).c_str(),
                                 {{"User-Agent", get_user_agent()}});
 
     if (response) {
