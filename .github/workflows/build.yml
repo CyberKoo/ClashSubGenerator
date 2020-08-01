@@ -1,0 +1,29 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.0.0
+      - name: Checkout submodules
+        uses: textbook/git-checkout-submodule-action@master
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v1.3
+        with:
+          cmake-version: '3.16.x'
+      - name: Install OpenSSL
+        run: sudo apt update; sudo apt install -y libssl-dev
+      - name: Create Build directory
+        run: mkdir build
+      - name: Run Cmake
+        run: cd build && cmake ../ -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cd build && make -s -j 4
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: ClashSubGenerator-amd64
+          path: build/ClashSubGenerator
