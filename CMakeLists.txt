@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(ClashSubGenerator)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -12,9 +12,9 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES Release)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -Os -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O2 -flto")
 elseif (CMAKE_BUILD_TYPE MATCHES Debug)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb")
     enable_testing()
 endif (CMAKE_BUILD_TYPE MATCHES Release)
 
@@ -45,16 +45,27 @@ include_directories(${OPENSSL_INCLUDE_DIRS})
 
 # optional
 include(LoadOptional)
+set(YAML_CPP_BUILD_TESTS OFF)
+set(YAML_CPP_BUILD_TOOLS OFF)
+set(YAML_CPP_BUILD_CONTRIB OFF)
 LOAD_OPTIONAL(Yaml-cpp yaml-cpp)
 LOAD_OPTIONAL(fmt fmt)
 
 # submodules
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
+# spdlog
 add_subdirectory(deps/spdlog)
-add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT)
-#add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
-add_subdirectory(deps/cpp-httplib)
+# CLI11
+set(CLI11_BUILD_DOCS OFF)
+set(CLI11_BUILD_TESTS OFF)
+set(CLI11_BUILD_EXAMPLES OFF)
+set(CLI11_BUILD_EXAMPLES_JSON OFF)
+set(CLI11_SINGLE_FILE_TESTS OFF)
 add_subdirectory(deps/CLI11)
+# cpp-httplib
+add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
+set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+add_subdirectory(deps/cpp-httplib)
 
 # glob files
 file(GLOB_RECURSE Exceptions "src/exception/*.h")

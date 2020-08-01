@@ -1,10 +1,8 @@
-name: C/C++ CI
-
+name: GitHub CI
 on: [push]
-
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  linux-amd64:
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2.0.0
@@ -14,16 +12,27 @@ jobs:
         uses: jwlawson/actions-setup-cmake@v1.3
         with:
           cmake-version: '3.16.x'
-      - name: Install OpenSSL
-        run: sudo apt update; sudo apt install -y libssl-dev
-      - name: Create Build directory
-        run: mkdir build
-      - name: Run Cmake
-        run: cd build && cmake ../ -DCMAKE_BUILD_TYPE=Release
-      - name: Build
-        run: cd build && make -s -j 4
-      - name: Upload
+      - name: Install dependencies
+        run: sudo apt update; sudo apt install -y libssl-dev upx
+      - name: Create build directory
+        run: mkdir build{-debug,-release}
+      - name: Run cmake for debug build
+        run: cd build-debug && cmake ../ -DCMAKE_BUILD_TYPE=Debug
+      - name: Build debug
+        run: cd build-debug && make -s -j 4
+      - name: Run cmake for release build
+        run: cd build-release && cmake ../ -DCMAKE_BUILD_TYPE=Release
+      - name: Build release
+        run: cd build-release && make -s -j 4
+      - name: Use UPX to compress file
+        run: upx -9 build-release/ClashSubGenerator
+      - name: Upload Debug
+        uses: actions/upload-artifact@v2
+        with:
+          name: ClashSubGenerator-debug-amd64
+          path: build-debug/ClashSubGenerator
+      - name: Upload Release
         uses: actions/upload-artifact@v2
         with:
           name: ClashSubGenerator-amd64
-          path: build/ClashSubGenerator
+          path: build-release/ClashSubGenerator
