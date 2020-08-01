@@ -15,26 +15,24 @@ const auto BIOFreeAll = [](BIO *p) {
 
 using bio_ptr = std::unique_ptr<BIO, decltype(BIOFreeAll)>;
 
-std::string padding(const std::string &data) {
+std::string padding(std::string_view data) {
     // under normal circumstance this value should never be 1,
     // the reminder value can only be 0, 2 or 3
     unsigned reminder = data.size() % 4;
+    auto new_data = std::string(data);
     if (reminder > 1) {
-        auto new_data = data;
 
         if (reminder == 2) {
             new_data += "==";
         } else if (reminder == 3) {
             new_data += "=";
         }
-
-        return new_data;
     }
 
-    return data;
+    return new_data;
 }
 
-std::string Base64::encode(const std::string &data) {
+std::string Base64::encode(std::string_view data) {
     auto base64 = bio_ptr(BIO_new(BIO_f_base64()), BIOFreeAll);
 
     if (data.find('\n') == std::string::npos) {
@@ -48,7 +46,7 @@ std::string Base64::encode(const std::string &data) {
     BIO_push(base64.get(), sink);
 
     // write sink
-    BIO_write(base64.get(), data.c_str(), data.size());
+    BIO_write(base64.get(), data.data(), data.size());
 
     BIO_flush(base64.get());
 
@@ -59,7 +57,7 @@ std::string Base64::encode(const std::string &data) {
     return std::string(encoded, len);
 }
 
-Base64::container_type Base64::decode(const std::string &data) {
+Base64::container_type Base64::decode(std::string_view data) {
     auto base64 = bio_ptr(BIO_new(BIO_f_base64()), BIOFreeAll);
 
     if (data.find('\n') == std::string::npos) {

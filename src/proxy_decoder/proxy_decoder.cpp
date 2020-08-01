@@ -12,34 +12,23 @@
 #include "trojan_decoder.h"
 #include "shadowsocks_decoder.h"
 #include "shadowsocksr_decoder.h"
+#include "../uri.h"
 #include "../base64.h"
-#include "../utils.h"
 #include "../exception/unsupported_configuration.h"
 
 YAML::Node ProxyDecoder::decode(std::string &content) {
-    auto [protocol, config] = strip_protocol(content);
-    Utils::trim(config);
-    auto decoder = get_decoder(protocol);
-    spdlog::debug("selected {} decoder for processing the raw data", protocol);
-    return decoder->decode_config(config);
+    auto uri = Uri::Parse(content);
+    auto decoder = get_decoder(uri.getProtocol());
+    spdlog::debug("selected {} decoder for processing the raw data", uri.getProtocol());
+    return decoder->decode_config(uri);
 }
 
-std::string ProxyDecoder::decode_base64(std::string &data) {
+std::string ProxyDecoder::decode_base64(std::string_view data) {
     auto decoded = Base64::decode(data);
     return Base64::to_string(decoded);
 }
 
-std::pair<std::string, std::string> ProxyDecoder::strip_protocol(std::string &uri) {
-    auto pos = uri.find("://");
-
-    if (pos != std::string::npos) {
-        return std::make_pair(uri.substr(0, pos), uri.substr(pos + 3));
-    }
-
-    throw UnsupportedConfiguration(fmt::format("Unable to determine the protocol", uri));
-}
-
-std::unique_ptr<ProxyDecoder> ProxyDecoder::get_decoder(const std::string &protocol) {
+std::unique_ptr<ProxyDecoder> ProxyDecoder::get_decoder(std::string_view protocol) {
     if (protocol == "vmess") {
         return std::make_unique<VmessDecoder>();
     } else if (protocol == "ss") {
@@ -55,13 +44,14 @@ std::unique_ptr<ProxyDecoder> ProxyDecoder::get_decoder(const std::string &proto
     throw UnsupportedConfiguration(fmt::format("Unable to determine the protocol", protocol));
 }
 
-std::pair<std::string, std::string> ProxyDecoder::strip_name(const std::string &content) {
+std::pair<std::string, std::string> ProxyDecoder::strip_name(std::string_view content) {
     auto comment_start = content.rfind('#');
     if (comment_start != std::string::npos) {
-        return std::make_pair(content.substr(comment_start + 1, content.size() - 1), content.substr(0, comment_start));
+        return std::make_pair(content.substr(comment_start + 1, content.size() - 1).data(),
+                              content.substr(0, comment_start).data());
     }
 
-    return std::make_pair("", content);
+    return std::make_pair("", content.data());
 }
 
 

@@ -30,11 +30,13 @@ YAML::Node OtherSubscriber::decode_config(const std::string &config) {
     auto config_list = Utils::split(Base64::to_string(decoded_config), '\n');
     for (auto &proxy: config_list) {
         try {
-            // decode config
-            auto proxy_config = ProxyDecoder::decode(proxy);
+            if (!proxy.empty()) {
+                // decode config
+                auto proxy_config = ProxyDecoder::decode(proxy);
 
-            if (proxy_config.IsDefined()) {
-                proxies.push_back(proxy_config);
+                if (proxy_config.IsDefined()) {
+                    proxies.push_back(proxy_config);
+                }
             }
         } catch (CSGRuntimeException &e) {
             spdlog::warn("Skip adding proxy {}, due to {}", proxy, e.what());

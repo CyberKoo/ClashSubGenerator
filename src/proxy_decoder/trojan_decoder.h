@@ -14,9 +14,9 @@ public:
 
     ~TrojanDecoder() override = default;
 
-    YAML::Node decode_config(std::string &content) override;
+    YAML::Node decode_config(const Uri &uri) override;
 
-    static std::map<std::string, std::string> get_parameters(std::string &query_string);
+    static std::map<std::string, std::string> get_parameters(std::string_view query_string);
 };
 
 

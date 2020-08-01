@@ -6,8 +6,25 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <random>
+#include <cstring>
 
 #include "utils.h"
+
+std::string Utils::get_random_string(unsigned int length) {
+    constexpr char CHARACTER_SET[]= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    std::random_device seed;
+    std::default_random_engine engine(seed());
+    std::uniform_int_distribution<int> distribution(0, std::strlen(CHARACTER_SET) - 1);
+
+    std::ostringstream oss;
+    for (std::size_t i = 0; i < length; ++i)
+    {
+        oss << CHARACTER_SET[distribution(engine)];
+    }
+
+    return oss.str();
+}
 
 std::string Utils::str_tolower(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
@@ -16,6 +33,18 @@ std::string Utils::str_tolower(std::string s) {
 
 std::vector<std::string> Utils::split(const std::string &s, const char delim) {
     std::stringstream ss(s);
+    std::string item;
+    std::vector<std::string> elements;
+
+    while (std::getline(ss, item, delim)) {
+        elements.emplace_back(std::move(item));
+    }
+
+    return elements;
+}
+
+std::vector<std::string> Utils::split(std::string_view s, const char delim) {
+    std::stringstream ss(s.data());
     std::string item;
     std::vector<std::string> elements;
 
@@ -86,4 +115,11 @@ void Utils::replace(std::string &str, const std::map<std::string, std::string> &
             pos = str.find(target);
         }
     }
+}
+
+std::string Utils::replace_copy(std::string_view str, const std::map<std::string, std::string> &replace_list) {
+    auto s = std::string(str);
+    Utils::replace(s, replace_list);
+
+    return s;
 }

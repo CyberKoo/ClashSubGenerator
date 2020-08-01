@@ -10,6 +10,8 @@
 #include <vector>
 
 namespace Utils {
+    std::string get_random_string(unsigned length);
+
     void ltrim(std::string &s);
 
     void rtrim(std::string &s);
@@ -30,7 +32,11 @@ namespace Utils {
 
     std::vector<std::string> split(const std::string &s, char delim);
 
+    std::vector<std::string> split(std::string_view s, char delim);
+
     void replace(std::string &str, const std::map<std::string, std::string> &replace_list);
+
+    std::string replace_copy(std::string_view str, const std::map<std::string, std::string> &replace_list);
 }
 
 #endif //CLASHSUBGENERATOR_UTILS_H

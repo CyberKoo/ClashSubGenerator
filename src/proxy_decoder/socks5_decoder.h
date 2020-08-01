@@ -13,7 +13,7 @@ public:
 
     ~Socks5Decoder() override = default;
 
-    YAML::Node decode_config(std::string &content) override;
+    YAML::Node decode_config(const Uri &uri) override;
 };
 
 

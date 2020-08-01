@@ -5,12 +5,13 @@
 #include <yaml-cpp/yaml.h>
 
 #include "vmess_decoder.h"
+#include "../uri.h"
 #include "../utils.h"
 #include "../exception/unsupported_configuration.h"
 #include "../exception/missing_key_exception.h"
 
-YAML::Node VmessDecoder::decode_config(std::string &content) {
-    auto decoded_config = decode_base64(content);
+YAML::Node VmessDecoder::decode_config(const Uri &uri) {
+    auto decoded_config = decode_base64(uri.getHost());
     config = YAML::Load(decoded_config);
     proxy = YAML::Node(YAML::NodeType::Map);
     const std::map<std::string, std::string> vmess2clash = {

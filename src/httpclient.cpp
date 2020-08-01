@@ -43,12 +43,12 @@ std::string HttpClient::get(const std::string &uri) {
     }
 }
 
-std::unique_ptr<httplib::Client> HttpClient::get_http_client(const std::string &host, int port) {
-    return std::make_unique<httplib::Client>(host, port);
+std::unique_ptr<httplib::Client> HttpClient::get_http_client(std::string_view host, int port) {
+    return std::make_unique<httplib::Client>(host.data(), port);
 }
 
-std::unique_ptr<httplib::Client> HttpClient::get_https_client(const std::string &host, int port) {
-    auto client = std::make_unique<httplib::SSLClient>(host, port);
+std::unique_ptr<httplib::Client> HttpClient::get_https_client(std::string_view host, int port) {
+    auto client = std::make_unique<httplib::SSLClient>(host.data(), port);
     auto ca_path = get_ca_path();
 
     if (!ca_path.empty()) {

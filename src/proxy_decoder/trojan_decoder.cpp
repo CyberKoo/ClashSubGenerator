@@ -12,14 +12,13 @@
 #include "../utils.h"
 #include "../exception/unsupported_configuration.h"
 
-YAML::Node TrojanDecoder::decode_config(std::string &content) {
+YAML::Node TrojanDecoder::decode_config(const Uri &uri) {
     YAML::Node proxy = YAML::Node(YAML::NodeType::Map);
 
-    auto[name, raw_config] = strip_name(content);
-    auto config = Uri::Parse(fmt::format("trojan://{}", raw_config));
-    auto queryString = config.getQueryString();
+    auto[name, raw_config] = strip_name(uri.getHost());
+    auto queryString = uri.getQueryString();
     auto parameters = get_parameters(queryString);
-    auto serverKey = Utils::split(config.getHost(), '@');
+    auto serverKey = Utils::split(uri.getHost(), '@');
 
     if (serverKey.size() != 2) {
         throw UnsupportedConfiguration("Incorrect Trojan config, missing password or server");
@@ -28,7 +27,7 @@ YAML::Node TrojanDecoder::decode_config(std::string &content) {
     proxy["name"] = httplib::detail::decode_url(name, true);
     proxy["type"] = "trojan";
     proxy["server"] = serverKey[1];
-    proxy["port"] = config.getPort();
+    proxy["port"] = uri.getPort();
     proxy["password"] = serverKey[0];
     proxy["udp"] = true;
 
@@ -39,12 +38,7 @@ YAML::Node TrojanDecoder::decode_config(std::string &content) {
     return proxy;
 }
 
-std::map<std::string, std::string> TrojanDecoder::get_parameters(std::string &query_string) {
-    // remove leading ?
-    if (query_string[0] == '?') {
-        query_string.erase(0, 1);
-    }
-
+std::map<std::string, std::string> TrojanDecoder::get_parameters(std::string_view query_string) {
     std::map<std::string, std::string> parameters;
     auto parameter_pair = Utils::split(query_string, '&');
     for (const auto &pair : parameter_pair) {

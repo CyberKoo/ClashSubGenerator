@@ -7,14 +7,15 @@
 #include <yaml-cpp/yaml.h>
 
 #include "shadowsocksr_decoder.h"
-#include "../exception/unsupported_configuration.h"
+#include "../uri.h"
 #include "../utils.h"
+#include "../exception/unsupported_configuration.h"
 
-YAML::Node ShadowsocksRDecoder::decode_config(std::string &content) {
-    spdlog::trace("using ssr decoder to decode config {}", content);
+YAML::Node ShadowsocksRDecoder::decode_config(const Uri &uri) {
+    spdlog::trace("using ssr decoder to decode config {}", uri.getHost());
 
     // decoding
-    auto decoded_config = decode_base64(content);
+    auto decoded_config = decode_base64(uri.getHost());
     spdlog::trace("decoded config {}", decoded_config);
 
     // parsing
@@ -25,7 +26,11 @@ YAML::Node ShadowsocksRDecoder::decode_config(std::string &content) {
 
     // additional parameters
     auto parameters = get_ssr_parameters(ssr[1]);
-    node["name"] = parameters["remarks"];
+    if (!parameters["remarks"].empty()) {
+        node["name"] = parameters["remarks"];
+    } else {
+        node["name"] = fmt::format("shadowsocksr_{}", Utils::get_random_string(10));
+    }
     node["type"] = "ssr";
     node["server"] = main_config[0];
     node["port"] = main_config[1];
@@ -46,11 +51,6 @@ YAML::Node ShadowsocksRDecoder::decode_config(std::string &content) {
 }
 
 std::map<std::string, std::string> ShadowsocksRDecoder::get_ssr_parameters(std::string &query_string) {
-    // remove leading ?
-    if (query_string[0] == '?') {
-        query_string.erase(0, 1);
-    }
-
     std::map<std::string, std::string> parameters;
     auto parameter_pair = Utils::split(query_string, '&');
     for (const auto &pair : parameter_pair) {
@@ -67,12 +67,12 @@ std::map<std::string, std::string> ShadowsocksRDecoder::get_ssr_parameters(std::
     return parameters;
 }
 
-std::string ShadowsocksRDecoder::decode_base64(std::string &data) {
-    Utils::replace(data, {
-                           {"_", "/"},
-                           {"-", "+"}
-                   }
+std::string ShadowsocksRDecoder::decode_base64(std::string_view content) {
+    auto s = Utils::replace_copy(content, {
+                                         {"_", "/"},
+                                         {"-", "+"}
+                                 }
     );
 
-    return ProxyDecoder::decode_base64(data);
+    return ProxyDecoder::decode_base64(s);
 }

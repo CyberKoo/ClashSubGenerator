@@ -7,17 +7,17 @@
 
 class Uri {
 public:
-    static Uri Parse(const std::string &uri);
+    static Uri Parse(std::string_view uri);
 
-    const std::string &getQueryString() const;
+    [[nodiscard]] std::string_view getQueryString() const;
 
-    const std::string &getPath() const;
+    [[nodiscard]] std::string_view getPath() const;
 
-    const std::string &getProtocol() const;
+    [[nodiscard]] std::string_view getProtocol() const;
 
-    const std::string &getHost() const;
+    [[nodiscard]] std::string_view getHost() const;
 
-    int getPort() const;
+    [[nodiscard]] int getPort() const;
 
 private:
     Uri() = default;

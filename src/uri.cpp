@@ -9,7 +9,7 @@
 #include "utils.h"
 #include "exception/invalid_uri_exception.h"
 
-Uri Uri::Parse(const std::string &uri) {
+Uri Uri::Parse(std::string_view uri) {
     Uri result;
 
     if (uri.empty())
@@ -76,19 +76,19 @@ Uri Uri::Parse(const std::string &uri) {
     return result;
 }
 
-const std::string &Uri::getQueryString() const {
+std::string_view Uri::getQueryString() const {
     return QueryString;
 }
 
-const std::string &Uri::getPath() const {
+std::string_view Uri::getPath() const {
     return Path;
 }
 
-const std::string &Uri::getProtocol() const {
+std::string_view Uri::getProtocol() const {
     return Protocol;
 }
 
-const std::string &Uri::getHost() const {
+std::string_view Uri::getHost() const {
     return Host;
 }
 
