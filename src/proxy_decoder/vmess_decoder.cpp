@@ -11,7 +11,7 @@
 #include "../exception/missing_key_exception.h"
 
 YAML::Node VmessDecoder::decode_config(const Uri &uri) {
-    auto decoded_config = decode_base64(uri.getHost());
+    auto decoded_config = decode_base64(fmt::format("{}{}", uri.getHost(), uri.getPath()));
     config = YAML::Load(decoded_config);
     proxy = YAML::Node(YAML::NodeType::Map);
     const std::map<std::string, std::string> vmess2clash = {
