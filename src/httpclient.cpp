@@ -10,8 +10,8 @@
 #include "httpclient.h"
 #include "filesystem.h"
 
-std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
-    std::unique_ptr<httplib::Client> client;
+std::unique_ptr<httplib::ClientImpl> HttpClient::connect(const Uri &uri) {
+    std::unique_ptr<httplib::ClientImpl> client;
     if (uri.getProtocol() == "http") {
         client = get_http_client(uri.getHost(), uri.getPort());
     } else if (uri.getProtocol() == "https") {
@@ -43,11 +43,11 @@ std::string HttpClient::get(const std::string &uri) {
     }
 }
 
-std::unique_ptr<httplib::Client> HttpClient::get_http_client(std::string_view host, int port) {
-    return std::make_unique<httplib::Client>(host.data(), port);
+std::unique_ptr<httplib::ClientImpl> HttpClient::get_http_client(std::string_view host, int port) {
+    return std::make_unique<httplib::ClientImpl>(host.data(), port);
 }
 
-std::unique_ptr<httplib::Client> HttpClient::get_https_client(std::string_view host, int port) {
+std::unique_ptr<httplib::ClientImpl> HttpClient::get_https_client(std::string_view host, int port) {
     auto client = std::make_unique<httplib::SSLClient>(host.data(), port);
     auto ca_path = get_ca_path();
 
