@@ -19,17 +19,13 @@ public:
 private:
     YAML::Node generate_configuration(const YAML::Node &node, const YAML::Node &preferred_group);
 
-    YAML::Node get_config(const std::string &filename, const std::string &repository_filename);
+    YAML::Node get_config(std::string_view filename, std::string_view repository_filename);
 
-    std::string get_file_full_path(const std::string &filename);
+    std::string get_file_full_path(std::string_view filename);
 
-    YAML::Node create_emoji_map(const std::string &provider_name);
+    YAML::Node create_emoji_map(std::string_view provider_name);
 
     YAML::Node generate_provider_configuration(const YAML::Node &node);
-
-    static void legacy_syntax_converter(const YAML::Node &node);
-
-    static std::vector<std::string> get_all_proxies_name(const YAML::Node &node);
 
 private:
     const Config &config;

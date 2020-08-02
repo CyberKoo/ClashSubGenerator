@@ -10,7 +10,7 @@
 constexpr int CSG_MAJOR = @CSG_VERSION_MAJOR@;
 constexpr int CSG_MINOR = @CSG_VERSION_MINOR@;
 constexpr int CSG_PATCH = @CSG_VERSION_PATCH@;
-constexpr char CSG_RELEASE_INFO[] = "@CSG_RELEASE_INFO@";
+constexpr std::string_view CSG_RELEASE_INFO = "@CSG_RELEASE_INFO@";
 
 std::string get_version();
 

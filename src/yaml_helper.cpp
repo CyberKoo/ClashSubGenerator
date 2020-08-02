@@ -20,7 +20,7 @@ std::string get_group_type_name(ProxyGroupType);
 
 std::string get_provider_type_name(ProviderType);
 
-YAML::Node YAMLHelper::load_remote(const std::string &uri) {
+YAML::Node YAMLHelper::load_remote(std::string_view uri) {
     auto remote_config = HttpClient::get(uri);
     return YAML::Load(remote_config);
 }
@@ -45,8 +45,8 @@ std::string YAMLHelper::search_key(const YAML::Node &node, const std::vector<std
     throw MissingKeyException(fmt::format("Unable to find the required key \"{}\"", keys.front()));
 }
 
-void YAMLHelper::write_yaml(const YAML::Node &node, const std::string &file) {
-    std::ofstream fout(file);
+void YAMLHelper::write_yaml(const YAML::Node &node, std::string_view file) {
+    std::ofstream fout(file.data());
 
     if (fout.is_open()) {
         spdlog::info("Writing yaml to file {}", file);
@@ -69,11 +69,11 @@ void YAMLHelper::node_renamer(const YAML::Node &node, const std::map<std::string
     }
 }
 
-void YAMLHelper::node_renamer(const YAML::Node &node, const std::string &search, const std::string &replace) {
+void YAMLHelper::node_renamer(const YAML::Node &node, std::string_view search, const std::string &replace) {
     for (auto item: node) {
         auto key_name = item.first.as<std::string>();
         if (key_name == search) {
-            item.first = replace;
+            item.first = YAML::Node(replace.data());
             spdlog::trace("Replace key {} to {}", key_name, replace);
             break;
         }

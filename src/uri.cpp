@@ -12,8 +12,9 @@
 Uri Uri::Parse(std::string_view uri) {
     Uri result;
 
-    if (uri.empty())
+    if (uri.empty()) {
         return result;
+    }
 
     // get query start
     auto queryStart = std::find(uri.begin(), uri.end(), '?');

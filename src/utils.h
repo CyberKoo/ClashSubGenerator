@@ -26,17 +26,19 @@ namespace Utils {
 
     std::string str_tolower(std::string s);
 
-    std::string get_time(const std::string &format, const std::time_t &timestamp);
+    std::string get_time(std::string_view format, const std::time_t &timestamp);
 
-    std::string get_time(const std::string &format);
+    std::string get_time(std::string_view format);
 
     std::vector<std::string> split(const std::string &s, char delim);
 
     std::vector<std::string> split(std::string_view s, char delim);
 
-    void replace(std::string &str, const std::map<std::string, std::string> &replace_list);
+    void replace(std::string &str, const std::map<std::string_view, std::string_view> &replace_list);
 
-    std::string replace_copy(std::string_view str, const std::map<std::string, std::string> &replace_list);
+    std::string replace_copy(std::string_view str, const std::map<std::string_view, std::string_view> &replace_list);
+
+    std::string url_decode(const std::string &url_encoded, bool convert_plus_to_space);
 }
 
 #endif //CLASHSUBGENERATOR_UTILS_H

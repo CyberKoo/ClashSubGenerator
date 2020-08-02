@@ -25,7 +25,7 @@ std::unique_ptr<httplib::ClientImpl> HttpClient::connect(const Uri &uri) {
     return client;
 }
 
-std::string HttpClient::get(const std::string &uri) {
+std::string HttpClient::get(std::string_view uri) {
     spdlog::debug("Fetch uri {}", uri);
     auto parse_result = Uri::Parse(uri);
     auto client = HttpClient::connect(parse_result);
@@ -62,14 +62,14 @@ std::unique_ptr<httplib::ClientImpl> HttpClient::get_https_client(std::string_vi
 std::string HttpClient::get_ca_path() {
     static std::string path;
     static bool inited = false;
-    constexpr char search_path[][50]{
+    constexpr std::string_view search_path[]{
             "/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
             "/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
             "/etc/ssl/ca-bundle.pem",                            // OpenSUSE
             "/etc/pki/tls/cacert.pem",                           // OpenELEC
             "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
             "/usr/local/etc/openssl/cert.pem",                   // MacOS via Homebrew
-            "./cacert.pem"                                       // Load local
+            "./ca.pem"                                           // Load local
     };
 
     // search

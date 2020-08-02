@@ -9,11 +9,10 @@
 #include "../yaml_helper.h"
 #include "../exception/missing_key_exception.h"
 
-void ClashSubscriber::load(const std::string &uri) {
+void ClashSubscriber::load(std::string_view uri) {
     try {
         auto yaml = YAMLHelper::load_remote(uri);
-        auto proxy_key_name = YAMLHelper::search_key(yaml, {"Proxy", "proxies"});
-        proxies = yaml[proxy_key_name];
+        proxies = yaml["proxies"];
         spdlog::info("Total number of proxies loaded {}", proxies.size());
     } catch (YAML::ParserException &e) {
         spdlog::critical("Invalid configuration file. {}", e.what());

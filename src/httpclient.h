@@ -16,7 +16,7 @@ class HttpClient {
 public:
     static std::unique_ptr<httplib::ClientImpl> connect(const Uri &uri);
 
-    static std::string get(const std::string &uri);
+    static std::string get(std::string_view uri);
 
 private:
     static std::unique_ptr<httplib::ClientImpl> get_http_client(std::string_view host, int port);

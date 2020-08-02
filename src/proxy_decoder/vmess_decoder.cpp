@@ -14,7 +14,7 @@ YAML::Node VmessDecoder::decode_config(const Uri &uri) {
     auto decoded_config = decode_base64(fmt::format("{}{}", uri.getHost(), uri.getPath()));
     config = YAML::Load(decoded_config);
     proxy = YAML::Node(YAML::NodeType::Map);
-    const std::map<std::string, std::string> vmess2clash = {
+    const std::map<std::string_view, std::string_view> clash2vmess = {
             {"name",    "ps"},
             {"server",  "add"},
             {"port",    "port"},
@@ -53,12 +53,12 @@ YAML::Node VmessDecoder::decode_config(const Uri &uri) {
     }
 
     // automatic mapping according to the predefined map
-    for (const auto &pair: vmess2clash) {
+    for (const auto &[clash, vmess]: clash2vmess) {
         // check key's existence and type
-        if (config[pair.second].IsDefined() && config[pair.second].IsScalar()) {
-            proxy[pair.first] = Utils::trim_copy(config[pair.second].as<std::string>());
+        if (config[vmess.data()].IsDefined() && config[vmess.data()].IsScalar()) {
+            proxy[clash.data()] = Utils::trim_copy(config[vmess.data()].as<std::string>());
         } else {
-            throw MissingKeyException(fmt::format("Required key \"{}\" is missing", pair.second));
+            throw MissingKeyException(fmt::format("Required key \"{}\" is missing", vmess));
         }
     }
 

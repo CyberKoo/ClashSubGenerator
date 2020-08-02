@@ -11,7 +11,7 @@ class ClashSubscriber : public Subscriber {
 public:
     ClashSubscriber() = default;
 
-    void load(const std::string &uri) final;
+    void load(std::string_view uri) final;
 };
 
 #endif //CLASHSUBGENERATOR_CLASH_SUBSCRIBER_H

@@ -83,13 +83,13 @@ std::string ClashSubGenerator::version() {
     return fmt::format("{}\nCompilation date: {} {}", get_version(), __DATE__, __TIME__);
 }
 
-std::string ClashSubGenerator::get_file_full_path(const std::string &filename) {
+std::string ClashSubGenerator::get_file_full_path(std::string_view filename) {
     return fmt::format("{}{}", config.working_directory, filename);
 }
 
-YAML::Node ClashSubGenerator::create_emoji_map(const std::string &provider_name) {
+YAML::Node ClashSubGenerator::create_emoji_map(std::string_view provider_name) {
     auto emoji = YAML::Node(system_config["Global"]["location2emoji"]);
-    auto provider = system_config["Providers"][provider_name];
+    auto provider = system_config["Providers"][provider_name.data()];
     if (provider["location2emoji"].IsDefined() && provider["location2emoji"].size() != 0) {
         for (const auto &local_emoji : provider["location2emoji"]) {
             auto emoji_name = local_emoji.first.as<std::string>();
@@ -101,7 +101,7 @@ YAML::Node ClashSubGenerator::create_emoji_map(const std::string &provider_name)
     return emoji;
 }
 
-YAML::Node ClashSubGenerator::get_config(const std::string &filename, const std::string &repository_filename) {
+YAML::Node ClashSubGenerator::get_config(std::string_view filename, std::string_view repository_filename) {
     auto path = get_file_full_path(filename);
     if (FileSystem::exists(path)) {
         return YAMLHelper::load_local(path);
@@ -246,17 +246,4 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
     }
 
     return master_config;
-}
-
-std::vector<std::string> ClashSubGenerator::get_all_proxies_name(const YAML::Node &node) {
-    std::vector<std::string> name_list;
-    for (const auto &proxy: node["proxies"]) {
-        name_list.emplace_back(proxy["name"].as<std::string>());
-    }
-
-    for (const auto &proxy: node["proxy-groups"]) {
-        name_list.emplace_back(proxy["name"].as<std::string>());
-    }
-
-    return name_list;
 }

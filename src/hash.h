@@ -9,11 +9,11 @@
 #include <string>
 
 namespace Hash {
-    std::string md5(const std::string &str);
+    std::string md5(std::string_view str);
 
-    std::string sha1(const std::string &str);
+    std::string sha1(std::string_view str);
 
-    std::string sha256(const std::string &str);
+    std::string sha256(std::string_view str);
 };
 
 

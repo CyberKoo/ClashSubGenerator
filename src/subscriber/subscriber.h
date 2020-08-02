@@ -18,7 +18,7 @@ public:
 
     virtual ~Subscriber() = 0;
 
-    virtual void load(const std::string &uri) = 0;
+    virtual void load(std::string_view uri) = 0;
 
     virtual void grouping(size_t group_min_size);
 

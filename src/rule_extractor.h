@@ -12,13 +12,13 @@ class RuleExtractor {
 public:
     RuleExtractor() = default;
 
-    void load(const std::string &uri);
+    ~RuleExtractor() = default;
+
+    void load(std::string_view uri);
 
     YAML::Node get();
 
     size_t count() const;
-
-    std::set<std::string> get_required_proxies();
 
 private:
     YAML::Node rules;

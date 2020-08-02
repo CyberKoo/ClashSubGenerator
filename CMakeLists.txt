@@ -45,9 +45,6 @@ include_directories(${OPENSSL_INCLUDE_DIRS})
 
 # optional
 include(LoadOptional)
-set(YAML_CPP_BUILD_TESTS OFF)
-set(YAML_CPP_BUILD_TOOLS OFF)
-set(YAML_CPP_BUILD_CONTRIB OFF)
 LOAD_OPTIONAL(Yaml-cpp yaml-cpp)
 LOAD_OPTIONAL(fmt fmt)
 

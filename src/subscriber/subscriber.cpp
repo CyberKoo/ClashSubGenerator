@@ -183,7 +183,7 @@ Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
         spdlog::trace("Name {}, total number of matches are {}", name, match.size());
         auto regex_result = get_regex_result(match);
 
-        auto get_value = [&](const std::string &key_name, const std::string &default_value) {
+        const auto get_value = [&](const std::string &key_name, const std::string &default_value) {
             auto def_index = provider["definition"][key_name].as<int>();
             if (def_index != -1 && static_cast<long>(regex_result.size()) > def_index) {
                 return regex_result[def_index];

@@ -11,7 +11,7 @@
 #include "enumerate.h"
 
 namespace YAMLHelper {
-    YAML::Node load_remote(const std::string &uri);
+    YAML::Node load_remote(std::string_view uri);
 
     YAML::Node load_local(const std::string &path);
 
@@ -21,7 +21,7 @@ namespace YAMLHelper {
     YAML::Node create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
                                      bool hc_enable, const std::string &hc_url, unsigned hc_interval);
 
-    void write_yaml(const YAML::Node &node, const std::string &file);
+    void write_yaml(const YAML::Node &node, std::string_view file);
 
     std::string search_key(const YAML::Node &node, const std::vector<std::string> &keys);
 
@@ -29,7 +29,7 @@ namespace YAMLHelper {
 
     void node_renamer(const YAML::Node &node, const std::map<std::string, std::string> &replace_pair);
 
-    void node_renamer(const YAML::Node &node, const std::string &search, const std::string &replace);
+    void node_renamer(const YAML::Node &node, std::string_view search, const std::string &replace);
 
     template<class T>
     void format(T &&node, YAML::EmitterStyle::value style, bool recursive = false) {

@@ -2,7 +2,6 @@
 // Created by Kotarou on 2020/7/26.
 //
 
-#include <httplib.h>
 #include <fmt/format.h>
 #include <yaml-cpp/yaml.h>
 #include <spdlog/spdlog.h>
@@ -24,7 +23,7 @@ YAML::Node TrojanDecoder::decode_config(const Uri &uri) {
         throw UnsupportedConfiguration("Incorrect Trojan config, missing password or server");
     }
 
-    proxy["name"] = httplib::detail::decode_url(name, true);
+    proxy["name"] = Utils::url_decode(name, true);
     proxy["type"] = "trojan";
     proxy["server"] = serverKey[1];
     proxy["port"] = uri.getPort();

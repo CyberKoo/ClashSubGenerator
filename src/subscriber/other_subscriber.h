@@ -9,7 +9,7 @@
 
 class OtherSubscriber : public Subscriber {
 public:
-    void load(const std::string &uri) override;
+    void load(std::string_view uri) final;
 
 private:
     static YAML::Node decode_config(const std::string &config);

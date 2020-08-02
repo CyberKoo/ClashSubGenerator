@@ -9,11 +9,11 @@
 
 namespace fs = std::filesystem;
 
-bool FileSystem::exists(const std::string &path) {
+bool FileSystem::exists(std::string_view path) {
     return fs::exists(path);
 }
 
-bool FileSystem::mkdir(const std::string &path) {
+bool FileSystem::mkdir(std::string_view path) {
     std::error_code ec;
     auto result = fs::create_directory(path, ec);
     if (ec) {
@@ -23,7 +23,7 @@ bool FileSystem::mkdir(const std::string &path) {
     return result;
 }
 
-void FileSystem::clear_directory(const std::string &path) {
+void FileSystem::clear_directory(std::string_view path) {
     for (const auto &entry : fs::directory_iterator(path)) {
         std::error_code ec;
         fs::remove_all(entry, ec);

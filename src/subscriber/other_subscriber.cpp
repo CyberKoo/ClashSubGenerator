@@ -12,7 +12,7 @@
 #include "../proxy_decoder/proxy_decoder.h"
 #include "../exception/csg_exeption.h"
 
-void OtherSubscriber::load(const std::string &uri) {
+void OtherSubscriber::load(std::string_view uri) {
     auto config = HttpClient::get(uri);
     proxies = decode_config(config);
 

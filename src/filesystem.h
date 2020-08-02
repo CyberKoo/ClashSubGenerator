@@ -5,15 +5,14 @@
 #ifndef CLASHSUBGENERATOR_FILESYSTEM_H
 #define CLASHSUBGENERATOR_FILESYSTEM_H
 
-
 #include <string>
 
 namespace FileSystem {
-    bool exists(const std::string &path);
+    bool exists(std::string_view path);
 
-    bool mkdir(const std::string &path);
+    bool mkdir(std::string_view path);
 
-    void clear_directory(const std::string &path);
+    void clear_directory(std::string_view path);
 };
 
 
