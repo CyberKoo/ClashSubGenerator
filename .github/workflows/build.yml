@@ -67,40 +67,40 @@ jobs:
         with:
           name: ClashSubGenerator-linux-aarch64
           path: build-release/ClashSubGenerator
-  linux-arm7:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2.0.0
-      - name: Checkout submodule
-        run: |
-          git submodule update --init --recursive
-      - name: Create build directory
-        run: mkdir build{-debug,-release}
-      - name: Build on aarch64 enviroment
-        uses: uraimo/run-on-arch-action@v1.0.9
-        id: runcmd
-        with:
-          architecture: armv7
-          distribution: ubuntu20.04
-          run: |
-            ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-            apt update && DEBIAN_FRONTEND=noninteractive apt -y install build-essential libssl-dev upx cmake git
-            cd build-debug && cmake ../ -DCMAKE_BUILD_TYPE=Debug
-            make -s -j 4
-            cd ../build-release && cmake ../ -DCMAKE_BUILD_TYPE=Release
-            make -s -j 4
-            upx -9 ClashSubGenerator
-      - name: Upload Debug
-        uses: actions/upload-artifact@v2
-        with:
-          name: ClashSubGenerator-debug-linux-arm7
-          path: build-debug/ClashSubGenerator
-      - name: Upload Release
-        uses: actions/upload-artifact@v2
-        with:
-          name: ClashSubGenerator-linux-arm7
-          path: build-release/ClashSubGenerator
+#  linux-arm7:
+#    runs-on: ubuntu-20.04
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2.0.0
+#      - name: Checkout submodule
+#        run: |
+#          git submodule update --init --recursive
+#      - name: Create build directory
+#        run: mkdir build{-debug,-release}
+#      - name: Build on arm7 enviroment
+#        uses: uraimo/run-on-arch-action@v1.0.9
+#        id: runcmd
+#        with:
+#          architecture: armv7
+#          distribution: ubuntu20.04
+#          run: |
+#            ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+#            apt update && DEBIAN_FRONTEND=noninteractive apt -y install build-essential libssl-dev upx cmake git
+#            cd build-debug && cmake ../ -DCMAKE_BUILD_TYPE=Debug
+#            make -s -j 4
+#            cd ../build-release && cmake ../ -DCMAKE_BUILD_TYPE=Release
+#            make -s -j 4
+#            upx -9 ClashSubGenerator
+#      - name: Upload Debug
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: ClashSubGenerator-debug-linux-arm7
+#          path: build-debug/ClashSubGenerator
+#      - name: Upload Release
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: ClashSubGenerator-linux-arm7
+#          path: build-release/ClashSubGenerator
   macos:
     runs-on: macos-latest
     steps:
