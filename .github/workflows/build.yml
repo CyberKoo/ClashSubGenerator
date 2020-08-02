@@ -6,12 +6,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2.0.0
-      - name: Checkout submodules
-        uses: textbook/git-checkout-submodule-action@master
-      - name: Setup cmake
-        uses: jwlawson/actions-setup-cmake@v1.3
-        with:
-          cmake-version: '3.16.x'
+      - name: Checkout submodule
+        run: |
+          git submodule update --init --recursive
       - name: Install dependencies
         run: sudo apt update; sudo apt install -y libssl-dev upx
       - name: Create build directory
@@ -35,4 +32,36 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ClashSubGenerator-amd64
+          path: build-release/ClashSubGenerator
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.0.0
+      - name: Checkout submodule
+        run: |
+          git submodule update --init --recursive
+      - name: Install dependencies
+        run: brew update; brew install openssl@1.1 upx
+      - name: Create build directory
+        run: mkdir build{-debug,-release}
+      - name: Run cmake for debug build
+        run: cd build-debug && cmake ../ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1/ -DCMAKE_BUILD_TYPE=Debug
+      - name: Build debug
+        run: cd build-debug && make -s -j 4
+      - name: Run cmake for release build
+        run: cd build-release && cmake ../ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1/ -DCMAKE_BUILD_TYPE=Release
+      - name: Build release
+        run: cd build-release && make -s -j 4
+      - name: Use UPX to compress file
+        run: /usr/local/bin/upx -9 build-release/ClashSubGenerator
+      - name: Upload Debug
+        uses: actions/upload-artifact@v2
+        with:
+          name: ClashSubGenerator-debug-macos
+          path: build-debug/ClashSubGenerator
+      - name: Upload Release
+        uses: actions/upload-artifact@v2
+        with:
+          name: ClashSubGenerator-macos
           path: build-release/ClashSubGenerator
