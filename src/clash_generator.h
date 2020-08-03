@@ -17,7 +17,7 @@ public:
     static std::string version();
 
 private:
-    YAML::Node generate_configuration(const YAML::Node &node, const YAML::Node &preferred_group);
+    YAML::Node generate_config_file(const YAML::Node &node, const YAML::Node &preferred_group);
 
     YAML::Node get_config(std::string_view filename, std::string_view repository_filename);
 
@@ -25,18 +25,17 @@ private:
 
     YAML::Node create_emoji_map(std::string_view provider_name);
 
-    YAML::Node generate_provider_configuration(const YAML::Node &node);
+    YAML::Node generate_providers(const YAML::Node &node);
 
-    YAML::Node regulate_groups(const YAML::Node &groups);
+    YAML::Node build_groups(const YAML::Node &groups);
 
-    YAML::Node create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType);
+    YAML::Node yaml_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType);
 
-    YAML::Node
-    create_provider_group(ProviderType providerType, const std::string &path, const std::string &url, bool hc_enable);
+    YAML::Node yaml_provider_group(ProviderType type, const std::string &path, const std::string &url, bool hc_enable);
 
-    std::string get_provider_type_name(ProviderType providerType);
+    static std::string get_provider_type_name(ProviderType providerType);
 
-    std::string get_group_type_name(ProxyGroupType proxyGroupType);
+    static std::string get_group_type_name(ProxyGroupType proxyGroupType);
 
 private:
     const Config &config;

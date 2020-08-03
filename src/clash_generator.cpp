@@ -61,10 +61,10 @@ void ClashSubGenerator::run() {
     subscriber->grouping(config.group_min_size);
     auto proxies = subscriber->get();
     if (config.generator == Generator::PROVIDER) {
-        proxies = generate_provider_configuration(proxies);
+        proxies = generate_providers(proxies);
     }
 
-    auto clash_config = generate_configuration(proxies, provider["preferred_group"]);
+    auto clash_config = generate_config_file(proxies, provider["preferred_group"]);
 
     // format configurations
     constexpr char keys[][16] = {"proxies", "proxy-groups", "rules", "proxy-providers"};
@@ -108,7 +108,7 @@ YAML::Node ClashSubGenerator::get_config(std::string_view filename, std::string_
     }
 }
 
-YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, const YAML::Node &preferred_group) {
+YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const YAML::Node &preferred_group) {
     spdlog::info("Start generating Clash configuration file");
     auto yaml_template = get_config(config.template_file, "template.yaml");
 
@@ -128,8 +128,13 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
         group_name = YAML::Node(node_name_list);
     }
 
+    auto proxy_groups = node["groups"];
+    if (config.generator == Generator::CONFIG) {
+        proxy_groups = build_groups(proxy_groups);
+    }
     YAMLHelper::node_merger(node["proxies"], yaml_template["proxies"]);
-    YAMLHelper::node_merger(regulate_groups(node["groups"]), yaml_template["proxy-groups"]);
+    YAMLHelper::node_merger(proxy_groups, yaml_template["proxy-groups"]);
+
     // append proxy-providers
     if (node["proxy-providers"].IsDefined() && node["proxy-providers"].IsMap()) {
         yaml_template["proxy-providers"] = node["proxy-providers"];
@@ -162,7 +167,7 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     // insert node when no anchor defined
     if (!anchor_replaced) {
         spdlog::debug("Anchor group not found, insert generated group to the end");
-        auto group_node = create_proxy_group(anchor_group_name, ProxyGroupType::SELECT);
+        auto group_node = yaml_proxy_group(anchor_group_name, ProxyGroupType::SELECT);
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
     }
@@ -189,7 +194,7 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     return yaml_template;
 }
 
-YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &node) {
+YAML::Node ClashSubGenerator::generate_providers(const YAML::Node &node) {
     const auto directory_name = get_file_full_path("providers");
     // create directory if not exists
     if (!FileSystem::exists(directory_name)) {
@@ -222,11 +227,11 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
         YAMLHelper::write_yaml(provider_proxies, get_file_full_path(out_file));
 
         // write provider section
-        master_config["proxy-providers"][group_name] = create_provider_group(ProviderType::FILE, out_file,
-                                                                                         "", true);
+        master_config["proxy-providers"][group_name] = yaml_provider_group(ProviderType::FILE, out_file,
+                                                                           "", true);
 
         // write proxy groups
-        auto proxy_group = create_proxy_group(group_name, ProxyGroupType::URL_TEST);
+        auto proxy_group = yaml_proxy_group(group_name, ProxyGroupType::URL_TEST);
         YAMLHelper::node_renamer(proxy_group, "proxies", "use");
         proxy_group["use"].push_back(group_name);
         master_config["groups"].push_back(proxy_group);
@@ -235,12 +240,12 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
     return master_config;
 }
 
-YAML::Node ClashSubGenerator::regulate_groups(const YAML::Node &groups) {
+YAML::Node ClashSubGenerator::build_groups(const YAML::Node &groups) {
     YAML::Node new_groups = YAML::Node(YAML::NodeType::Sequence);
     for (const YAML::Node &group: groups) {
         auto group_name = group["name"].as<std::string>();
-        auto proxy_group_type = (group_name != "leftover") ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
-        auto new_group = create_proxy_group(group_name, proxy_group_type);
+        auto proxy_group_type = (group_name != "Ungrouped") ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
+        auto new_group = yaml_proxy_group(group_name, proxy_group_type);
         new_group["proxies"] = group["proxies"];
 
         new_groups.push_back(new_group);
@@ -257,7 +262,7 @@ std::string ClashSubGenerator::get_file_full_path(std::string_view filename) {
     return fmt::format("{}{}", config.working_directory, filename);
 }
 
-YAML::Node ClashSubGenerator::create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType) {
+YAML::Node ClashSubGenerator::yaml_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType) {
     auto group_content = YAML::Node();
     group_content["name"] = YAML::Node(group_name);
     group_content["type"] = YAML::Node(get_group_type_name(proxyGroupType));
@@ -273,12 +278,13 @@ YAML::Node ClashSubGenerator::create_proxy_group(const std::string &group_name, 
     return group_content;
 }
 
-YAML::Node ClashSubGenerator::create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
-                                             bool hc_enable) {
+YAML::Node
+ClashSubGenerator::yaml_provider_group(ProviderType type, const std::string &path, const std::string &url,
+                                       bool hc_enable) {
     auto group_content = YAML::Node();
-    group_content["type"] = YAML::Node(get_provider_type_name(providerType));
+    group_content["type"] = YAML::Node(get_provider_type_name(type));
 
-    if (providerType == ProviderType::HTTP) {
+    if (type == ProviderType::HTTP) {
         if (!url.empty()) {
             group_content["url"] = YAML::Node(url);
         } else {

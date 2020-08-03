@@ -20,7 +20,7 @@ Subscriber::~Subscriber() = default;
 
 void Subscriber::grouping(size_t group_min_size) {
     auto netflix = node_vector();
-    auto leftover = node_vector();
+    auto ungrouped = node_vector();
 
     // cleaner
     std::vector<std::string> remove_list;
@@ -84,7 +84,7 @@ void Subscriber::grouping(size_t group_min_size) {
         // move group size > group_min_size to left over
         for (const auto &node: group_result) {
             if (node.second.size() < group_min_size) {
-                leftover.insert(leftover.end(), node.second.begin(), node.second.end());
+                ungrouped.insert(ungrouped.end(), node.second.begin(), node.second.end());
                 remove_list.emplace_back(node.first);
             }
         }
@@ -94,7 +94,7 @@ void Subscriber::grouping(size_t group_min_size) {
         for (auto proxy : proxies) {
             // trim proxy name
             proxy["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
-            leftover.emplace_back(proxy);
+            ungrouped.emplace_back(proxy);
         }
     }
 
@@ -103,9 +103,9 @@ void Subscriber::grouping(size_t group_min_size) {
         group_result.insert({"netflix", netflix});
     }
 
-    if (!leftover.empty()) {
-        spdlog::debug("Found {} leftover proxies", leftover.size());
-        group_result.insert({"leftover", leftover});
+    if (!ungrouped.empty()) {
+        spdlog::debug("Found {} ungrouped proxies", ungrouped.size());
+        group_result.insert({"Ungrouped", ungrouped});
     }
 }
 
