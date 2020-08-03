@@ -231,7 +231,9 @@ YAML::Node ClashSubGenerator::generate_providers(const YAML::Node &node) {
                                                                            "", true);
 
         // write proxy groups
-        auto proxy_group = yaml_proxy_group(group_name, ProxyGroupType::URL_TEST);
+        auto search_result = group_name.find(ungrouped_name) == std::string::npos;
+        auto proxy_group_type = search_result ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
+        auto proxy_group = yaml_proxy_group(group_name, proxy_group_type);
         YAMLHelper::node_renamer(proxy_group, "proxies", "use");
         proxy_group["use"].push_back(group_name);
         master_config["groups"].push_back(proxy_group);
@@ -244,7 +246,7 @@ YAML::Node ClashSubGenerator::build_groups(const YAML::Node &groups) {
     YAML::Node new_groups = YAML::Node(YAML::NodeType::Sequence);
     for (const YAML::Node &group: groups) {
         auto group_name = group["name"].as<std::string>();
-        auto proxy_group_type = (group_name != "Ungrouped") ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
+        auto proxy_group_type = (group_name != ungrouped_name) ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
         auto new_group = yaml_proxy_group(group_name, proxy_group_type);
         new_group["proxies"] = group["proxies"];
 
