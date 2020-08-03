@@ -9,8 +9,9 @@
 #include "../base64.h"
 #include "../utils.h"
 #include "../httpclient.h"
-#include "../proxy_decoder/proxy_decoder.h"
 #include "../exception/csg_exeption.h"
+#include "../proxy_decoder/proxy_decoder.h"
+#include "../proxy_decoder/proxy_decoder_factory.h"
 
 void OtherSubscriber::load(std::string_view uri) {
     auto config = HttpClient::get(uri);
@@ -23,17 +24,20 @@ void OtherSubscriber::load(std::string_view uri) {
     }
 }
 
-YAML::Node OtherSubscriber::decode_config(const std::string &config) {
+YAML::Node OtherSubscriber::decode_config(std::string_view config) {
     auto decoded_config = Base64::decode(config);
     YAML::Node proxies;
 
-    auto config_list = Utils::split(Base64::to_string(decoded_config), '\n');
+    auto config_list = Utils::split(decoded_config, '\n');
     for (auto &proxy: config_list) {
         try {
             if (!proxy.empty()) {
                 // decode config
-                auto proxy_config = ProxyDecoder::decode(proxy);
+                auto uri = Uri::Parse(proxy);
+                auto decoder = ProxyDecoderFactory::make(uri.getProtocol());
+                spdlog::debug("select {} decoder for processing the raw data", uri.getProtocol());
 
+                auto proxy_config = decoder->decode_config(uri);
                 if (proxy_config.IsDefined()) {
                     proxies.push_back(proxy_config);
                 }

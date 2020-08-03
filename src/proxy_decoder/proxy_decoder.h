@@ -14,17 +14,12 @@ class ProxyDecoder {
 public:
     virtual ~ProxyDecoder() = default;
 
-    static YAML::Node decode(std::string &content);
-
     virtual YAML::Node decode_config(const Uri &uri) = 0;
 
 protected:
     static std::string decode_base64(std::string_view data);
 
     static std::pair<std::string, std::string> strip_name(std::string_view content);
-
-private:
-    static std::unique_ptr<ProxyDecoder> get_decoder(std::string_view protocol);
 };
 
 

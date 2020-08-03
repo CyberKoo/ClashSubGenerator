@@ -12,7 +12,7 @@ public:
     void load(std::string_view uri) final;
 
 private:
-    static YAML::Node decode_config(const std::string &config);
+    static YAML::Node decode_config(std::string_view config);
 };
 
 

@@ -57,7 +57,7 @@ std::string Base64::encode(std::string_view data) {
     return std::string(encoded, len);
 }
 
-Base64::container_type Base64::decode(std::string_view data) {
+std::string Base64::decode(std::string_view data) {
     auto base64 = bio_ptr(BIO_new(BIO_f_base64()), BIOFreeAll);
 
     if (data.find('\n') == std::string::npos) {
@@ -75,7 +75,7 @@ Base64::container_type Base64::decode(std::string_view data) {
     const auto maxlen = input.size() / 4 * 3 + 1;
 
     // reserve space
-    Base64::container_type decoded(maxlen);
+    Base64::container_t decoded(maxlen);
 
     // calculate exact length
     const auto len = BIO_read(base64.get(), decoded.data(), maxlen);
@@ -83,9 +83,5 @@ Base64::container_type Base64::decode(std::string_view data) {
     // resize container
     decoded.resize(len);
 
-    return decoded;
-}
-
-std::string Base64::to_string(const Base64::container_type &result) {
-    return std::string(result.begin(), result.end());
+    return std::string(decoded.begin(), decoded.end());
 }
