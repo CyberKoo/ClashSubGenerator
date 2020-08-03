@@ -14,7 +14,7 @@ endif ()
 if (CMAKE_BUILD_TYPE MATCHES Release)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O2 -flto")
 elseif (CMAKE_BUILD_TYPE MATCHES Debug)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb -gdwarf-3")
     enable_testing()
 endif (CMAKE_BUILD_TYPE MATCHES Release)
 

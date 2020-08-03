@@ -14,7 +14,6 @@ Subscriber::Subscriber() {
     this->enable_grouping = false;
     this->exclude_amplified_node = false;
     this->use_emoji = false;
-    this->interval = 300;
 }
 
 Subscriber::~Subscriber() = default;
@@ -117,18 +116,19 @@ YAML::Node Subscriber::get() {
     node["proxies"] = YAML::Node(YAML::NodeType::Sequence);
     node["group_name"] = YAML::Node(YAML::NodeType::Sequence);
     if (!group_result.empty()) {
-        auto prefix = provider["prefix"].IsDefined() ? provider["prefix"].as<std::string>() : "Generated";
-        for (const auto &group: group_result) {
-            auto group_name = fmt::format("{}-{}", prefix, group.first);
-            node["group_name"].push_back(group_name);
-            spdlog::debug("Processing group {}", group_name);
 
-            auto proxy_group_type = (group.first != "leftover") ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
-            auto group_content = YAMLHelper::create_proxy_group(group_name, proxy_group_type, benchmarking_url, interval);
-            node["groups"].push_back(group_content);
+        auto prefix = provider["prefix"].IsDefined() ? provider["prefix"].as<std::string>() : "Generated";
+        for (const auto &[name, nodes]: group_result) {
+            auto current_group = YAML::Node();
+            auto group_name = fmt::format("{}-{}", prefix, name);
+            node["group_name"].push_back(group_name);
+            node["groups"].push_back(current_group);
+            spdlog::debug("Processing group {}", group_name);
+            current_group["name"] = group_name;
+            current_group["proxies"] = YAML::Node(YAML::NodeType::Sequence);
 
             std::map<std::string, size_t> location_counter;
-            for (const auto &proxy: group.second) {
+            for (const auto &proxy: nodes) {
                 const auto name_generator = [&](const YAML::Node &attributes) {
                     auto id = attributes["id"].as<int>();
                     auto name = attributes["location"].as<std::string>();
@@ -152,10 +152,10 @@ YAML::Node Subscriber::get() {
                     }
 
                     // do not append duplicated proxy
-                    if (group.first != "netflix") {
+                    if (name != "netflix") {
                         node["proxies"].push_back(proxy_ref);
                     }
-                    group_content["proxies"].push_back(proxy_name);
+                    current_group["proxies"].push_back(proxy_name);
                     // strip attributes
                     proxy_ref.remove("attributes");
                 }
@@ -240,18 +240,9 @@ void Subscriber::set_provider(const YAML::Node &_provider) {
     this->provider = _provider;
 }
 
-void Subscriber::set_benchmarking_url(const std::string &_benchmarking_url) {
-    this->benchmarking_url = _benchmarking_url;
-}
-
 void Subscriber::set_use_emoji(bool _use_emoji) {
     this->use_emoji = _use_emoji;
 }
-
-void Subscriber::set_benchmarking_interval(unsigned _interval) {
-    this->interval = _interval;
-}
-
 void Subscriber::set_emoji_map(const YAML::Node &_emoji_map) {
     this->emoji_map = _emoji_map;
 }

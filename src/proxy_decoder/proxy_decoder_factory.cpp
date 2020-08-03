@@ -3,6 +3,7 @@
 //
 
 #include <fmt/format.h>
+#include <yaml-cpp/yaml.h>
 
 #include "proxy_decoder_factory.h"
 #include "vmess_decoder.h"

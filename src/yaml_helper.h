@@ -15,12 +15,6 @@ namespace YAMLHelper {
 
     YAML::Node load_local(const std::string &path);
 
-    YAML::Node create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType, const std::string &url,
-                                  unsigned interval);
-
-    YAML::Node create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
-                                     bool hc_enable, const std::string &hc_url, unsigned hc_interval);
-
     void write_yaml(const YAML::Node &node, std::string_view file);
 
     std::string search_key(const YAML::Node &node, const std::vector<std::string> &keys);

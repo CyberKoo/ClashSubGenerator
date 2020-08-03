@@ -27,11 +27,21 @@ private:
 
     YAML::Node generate_provider_configuration(const YAML::Node &node);
 
+    YAML::Node regulate_groups(const YAML::Node &groups);
+
+    YAML::Node create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType);
+
+    YAML::Node
+    create_provider_group(ProviderType providerType, const std::string &path, const std::string &url, bool hc_enable);
+
+    std::string get_provider_type_name(ProviderType providerType);
+
+    std::string get_group_type_name(ProxyGroupType proxyGroupType);
+
 private:
     const Config &config;
 
     YAML::Node system_config;
-
 };
 
 #endif //CLASHSUBGENERATOR_CLASH_GENERATOR_H

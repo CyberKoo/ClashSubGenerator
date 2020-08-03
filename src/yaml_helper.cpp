@@ -14,11 +14,6 @@
 #include "exception/file_write_exception.h"
 #include "exception/missing_key_exception.h"
 #include "exception/file_system_exception.h"
-#include "exception/invalid_value_exception.h"
-
-std::string get_group_type_name(ProxyGroupType);
-
-std::string get_provider_type_name(ProviderType);
 
 YAML::Node YAMLHelper::load_remote(std::string_view uri) {
     auto remote_config = HttpClient::get(uri);
@@ -84,71 +79,4 @@ void YAMLHelper::node_merger(const YAML::Node &source_node, YAML::Node target_no
     for (const auto &node : source_node) {
         target_node.push_back(YAML::Node(node));
     }
-}
-
-YAML::Node YAMLHelper::create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType,
-                                          const std::string &url, unsigned interval) {
-    auto group_content = YAML::Node();
-    group_content["name"] = YAML::Node(group_name);
-    group_content["type"] = YAML::Node(get_group_type_name(proxyGroupType));
-    group_content["url"] = YAML::Node(url);
-    group_content["interval"] = YAML::Node(interval);
-
-    if (proxyGroupType == ProxyGroupType::URL_TEST) {
-        group_content["tolerance"] = YAML::Node(50);
-    }
-
-    group_content["proxies"] = YAML::Node(YAML::NodeType::Sequence);
-
-    return group_content;
-}
-
-YAML::Node YAMLHelper::create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
-                                             bool hc_enable, const std::string &hc_url, unsigned hc_interval) {
-    auto group_content = YAML::Node();
-    group_content["type"] = YAML::Node(get_provider_type_name(providerType));
-
-    if (providerType == ProviderType::HTTP) {
-        if (!url.empty()) {
-            group_content["url"] = YAML::Node(url);
-        } else {
-            throw MissingKeyException("Provider type http must be used with a valid url");
-        }
-    }
-
-    group_content["path"] = YAML::Node(path);
-    group_content["health-check"] = YAML::Node(YAML::NodeType::Map);
-    group_content["health-check"]["enable"] = YAML::Node(hc_enable);
-    group_content["health-check"]["url"] = YAML::Node(hc_url);
-    group_content["health-check"]["interval"] = YAML::Node(hc_interval);
-
-    return group_content;
-}
-
-std::string get_group_type_name(ProxyGroupType proxyGroupType) {
-    switch (proxyGroupType) {
-        case ProxyGroupType::SELECT:
-            return "select";
-        case ProxyGroupType::RELAY:
-            return "relay";
-        case ProxyGroupType::URL_TEST:
-            return "url-test";
-        case ProxyGroupType::FALLBACK:
-            return "fallback";
-        case ProxyGroupType::LOAD_BALANCE:
-            return "load-balance";
-    }
-
-    throw InvalidValueException("The value of enumerate ProxyGroupType is invalid");
-}
-
-std::string get_provider_type_name(ProviderType providerType) {
-    switch (providerType) {
-        case ProviderType::FILE:
-            return "file";
-        case ProviderType::HTTP:
-            return "http";
-    }
-
-    throw InvalidValueException("The value of enumerate ProviderType is invalid");
 }

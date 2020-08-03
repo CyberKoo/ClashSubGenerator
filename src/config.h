@@ -27,6 +27,7 @@ struct Config {
     std::string working_directory;
 
     unsigned benchmarking_interval;
+    unsigned benchmarking_tolerance;
 
     size_t group_min_size;
     SubscribeType subscribe_type;

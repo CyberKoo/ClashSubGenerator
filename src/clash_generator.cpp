@@ -15,6 +15,8 @@
 #include "clash_generator.h"
 #include "subscriber/subscriber_factory.h"
 #include "exception/file_system_exception.h"
+#include "exception/missing_key_exception.h"
+#include "exception/invalid_value_exception.h"
 
 void ClashSubGenerator::run() {
     spdlog::info("Configuration format: {}", config.generator == Generator::PROVIDER ? "Provider" : "Config");
@@ -54,13 +56,10 @@ void ClashSubGenerator::run() {
     subscriber->load(config.subscribe_url);
     // set flag and parameters
     subscriber->set_use_emoji(config.use_emoji);
-    subscriber->set_benchmarking_url(config.benchmarking_url);
-    subscriber->set_benchmarking_interval(config.benchmarking_interval);
     subscriber->set_exclude_amplified_node(config.exclude_amplified_proxy);
     // perform grouping
     subscriber->grouping(config.group_min_size);
     auto proxies = subscriber->get();
-    // auto proxy_list = get_all_proxies_name(clash_config);
     if (config.generator == Generator::PROVIDER) {
         proxies = generate_provider_configuration(proxies);
     }
@@ -77,14 +76,6 @@ void ClashSubGenerator::run() {
 
     // write config.yaml
     YAMLHelper::write_yaml(clash_config, get_file_full_path(config.output));
-}
-
-std::string ClashSubGenerator::version() {
-    return fmt::format("{}\nCompilation date: {} {}", get_version(), __DATE__, __TIME__);
-}
-
-std::string ClashSubGenerator::get_file_full_path(std::string_view filename) {
-    return fmt::format("{}{}", config.working_directory, filename);
 }
 
 YAML::Node ClashSubGenerator::create_emoji_map(std::string_view provider_name) {
@@ -138,7 +129,7 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     }
 
     YAMLHelper::node_merger(node["proxies"], yaml_template["proxies"]);
-    YAMLHelper::node_merger(node["groups"], yaml_template["proxy-groups"]);
+    YAMLHelper::node_merger(regulate_groups(node["groups"]), yaml_template["proxy-groups"]);
     // append proxy-providers
     if (node["proxy-providers"].IsDefined() && node["proxy-providers"].IsMap()) {
         yaml_template["proxy-providers"] = node["proxy-providers"];
@@ -171,8 +162,7 @@ YAML::Node ClashSubGenerator::generate_configuration(const YAML::Node &node, con
     // insert node when no anchor defined
     if (!anchor_replaced) {
         spdlog::debug("Anchor group not found, insert generated group to the end");
-        auto group_node = YAMLHelper::create_proxy_group(anchor_group_name, ProxyGroupType::SELECT,
-                                                         config.benchmarking_url, config.benchmarking_interval);
+        auto group_node = create_proxy_group(anchor_group_name, ProxyGroupType::SELECT);
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
     }
@@ -232,18 +222,103 @@ YAML::Node ClashSubGenerator::generate_provider_configuration(const YAML::Node &
         YAMLHelper::write_yaml(provider_proxies, get_file_full_path(out_file));
 
         // write provider section
-        master_config["proxy-providers"][group_name] = YAMLHelper::create_provider_group(ProviderType::FILE, out_file,
-                                                                                         "", true,
-                                                                                         config.benchmarking_url,
-                                                                                         config.benchmarking_interval);
+        master_config["proxy-providers"][group_name] = create_provider_group(ProviderType::FILE, out_file,
+                                                                                         "", true);
 
         // write proxy groups
-        auto proxy_group = YAMLHelper::create_proxy_group(group_name, ProxyGroupType::URL_TEST,
-                                                          config.benchmarking_url, config.benchmarking_interval);
+        auto proxy_group = create_proxy_group(group_name, ProxyGroupType::URL_TEST);
         YAMLHelper::node_renamer(proxy_group, "proxies", "use");
         proxy_group["use"].push_back(group_name);
         master_config["groups"].push_back(proxy_group);
     }
 
     return master_config;
+}
+
+YAML::Node ClashSubGenerator::regulate_groups(const YAML::Node &groups) {
+    YAML::Node new_groups = YAML::Node(YAML::NodeType::Sequence);
+    for (const YAML::Node &group: groups) {
+        auto group_name = group["name"].as<std::string>();
+        auto proxy_group_type = (group_name != "leftover") ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
+        auto new_group = create_proxy_group(group_name, proxy_group_type);
+        new_group["proxies"] = group["proxies"];
+
+        new_groups.push_back(new_group);
+    }
+
+    return new_groups;
+}
+
+std::string ClashSubGenerator::version() {
+    return fmt::format("{}\nCompilation date: {} {}", get_version(), __DATE__, __TIME__);
+}
+
+std::string ClashSubGenerator::get_file_full_path(std::string_view filename) {
+    return fmt::format("{}{}", config.working_directory, filename);
+}
+
+YAML::Node ClashSubGenerator::create_proxy_group(const std::string &group_name, ProxyGroupType proxyGroupType) {
+    auto group_content = YAML::Node();
+    group_content["name"] = YAML::Node(group_name);
+    group_content["type"] = YAML::Node(get_group_type_name(proxyGroupType));
+    group_content["url"] = YAML::Node(config.benchmarking_url);
+    group_content["interval"] = YAML::Node(config.benchmarking_interval);
+
+    if (proxyGroupType == ProxyGroupType::URL_TEST && config.benchmarking_tolerance > 0) {
+        group_content["tolerance"] = YAML::Node(config.benchmarking_tolerance);
+    }
+
+    group_content["proxies"] = YAML::Node(YAML::NodeType::Sequence);
+
+    return group_content;
+}
+
+YAML::Node ClashSubGenerator::create_provider_group(ProviderType providerType, const std::string &path, const std::string &url,
+                                             bool hc_enable) {
+    auto group_content = YAML::Node();
+    group_content["type"] = YAML::Node(get_provider_type_name(providerType));
+
+    if (providerType == ProviderType::HTTP) {
+        if (!url.empty()) {
+            group_content["url"] = YAML::Node(url);
+        } else {
+            throw MissingKeyException("Provider type http must be used with a valid url");
+        }
+    }
+
+    group_content["path"] = YAML::Node(path);
+    group_content["health-check"] = YAML::Node(YAML::NodeType::Map);
+    group_content["health-check"]["enable"] = YAML::Node(hc_enable);
+    group_content["health-check"]["url"] = YAML::Node(config.benchmarking_url);
+    group_content["health-check"]["interval"] = YAML::Node(config.benchmarking_interval);
+
+    return group_content;
+}
+
+std::string ClashSubGenerator::get_group_type_name(ProxyGroupType proxyGroupType) {
+    switch (proxyGroupType) {
+        case ProxyGroupType::SELECT:
+            return "select";
+        case ProxyGroupType::RELAY:
+            return "relay";
+        case ProxyGroupType::URL_TEST:
+            return "url-test";
+        case ProxyGroupType::FALLBACK:
+            return "fallback";
+        case ProxyGroupType::LOAD_BALANCE:
+            return "load-balance";
+    }
+
+    throw InvalidValueException("The value of enumerate ProxyGroupType is invalid");
+}
+
+std::string ClashSubGenerator::get_provider_type_name(ProviderType providerType) {
+    switch (providerType) {
+        case ProviderType::FILE:
+            return "file";
+        case ProviderType::HTTP:
+            return "http";
+    }
+
+    throw InvalidValueException("The value of enumerate ProviderType is invalid");
 }

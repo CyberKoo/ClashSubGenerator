@@ -5,7 +5,7 @@
 #ifndef CLASHSUBGENERATOR_TROJAN_DECODER_H
 #define CLASHSUBGENERATOR_TROJAN_DECODER_H
 
-
+#include <map>
 #include "proxy_decoder.h"
 
 class TrojanDecoder : public ProxyDecoder {
