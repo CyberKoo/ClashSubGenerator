@@ -1,7 +1,5 @@
 # ClashSubGenerator
 
-## build status
-
 ![GitHub CI](https://github.com/CyberKoo/ClashSubGenerator/workflows/GitHub%20CI/badge.svg)
 
 ## Usage

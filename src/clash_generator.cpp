@@ -246,7 +246,8 @@ YAML::Node ClashSubGenerator::build_groups(const YAML::Node &groups) {
     YAML::Node new_groups = YAML::Node(YAML::NodeType::Sequence);
     for (const YAML::Node &group: groups) {
         auto group_name = group["name"].as<std::string>();
-        auto proxy_group_type = (group_name != ungrouped_name) ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
+        auto search_result = group_name.find(ungrouped_name) == std::string::npos;
+        auto proxy_group_type = search_result ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
         auto new_group = yaml_proxy_group(group_name, proxy_group_type);
         new_group["proxies"] = group["proxies"];
 
