@@ -33,6 +33,7 @@ YAML::Node OtherSubscriber::decode_config(std::string_view config) {
     for (auto &proxy: config_list) {
         try {
             if (!proxy.empty()) {
+                Utils::trim(proxy);
                 // decode config
                 auto uri = Uri::Parse(proxy);
                 auto decoder = ProxyDecoderFactory::make(uri.getProtocol());
