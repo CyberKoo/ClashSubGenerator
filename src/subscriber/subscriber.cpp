@@ -22,29 +22,24 @@ void Subscriber::grouping(size_t group_min_size) {
     auto netflix = node_vector();
     auto ungrouped = node_vector();
 
-    // cleaner
-    std::vector<std::string> remove_list;
-    const auto map_cleaner = [&]() {
-        for (const auto &name: remove_list) {
-            group_result.erase(name);
-            spdlog::debug("Remove group {}", name);
-        }
-        remove_list.clear();
-    };
-
     if (enable_grouping) {
         spdlog::info("Grouping proxies by name, minimum size for a group is {}", group_min_size);
+
+        // awaiting delete
+        std::vector<std::string> remove_list;
+
         // grouping
-        for (auto proxy : proxies) {
+        for (const auto &proxy : proxies) {
+            auto proxy_ptr = YAML::Node(proxy);
             // trim proxy name
-            proxy["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
+            proxy_ptr["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
             auto proxy_name = proxy["name"].as<std::string>();
             auto attribute = parse_name(proxy_name);
             spdlog::trace("proxy name: {}, id: {}, netflix: {}, amplification: {}",
                           attribute.location, attribute.id, attribute.netflix, attribute.amplification);
 
             // write attributes to proxy
-            append_attributes(attribute, proxy);
+            append_attributes(attribute, proxy_ptr);
 
             if (exclude_amplified_node && attribute.amplification > 1.0) {
                 spdlog::debug("Proxy {} excluded, because the amplification is {}", proxy_name,
@@ -79,7 +74,7 @@ void Subscriber::grouping(size_t group_min_size) {
                 remove_list.emplace_back(source_name);
             }
         }
-        map_cleaner();
+        remove_groups(remove_list);
 
         // move group size > group_min_size to left over
         for (const auto &node: group_result) {
@@ -88,9 +83,9 @@ void Subscriber::grouping(size_t group_min_size) {
                 remove_list.emplace_back(node.first);
             }
         }
-        map_cleaner();
+        remove_groups(remove_list);
     } else {
-        spdlog::info("Grouping proxy is disabled");
+        spdlog::info("Proxy grouping is disabled");
         for (auto proxy : proxies) {
             // trim proxy name
             proxy["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
@@ -116,7 +111,6 @@ YAML::Node Subscriber::get() {
     node["proxies"] = YAML::Node(YAML::NodeType::Sequence);
     node["group_name"] = YAML::Node(YAML::NodeType::Sequence);
     if (!group_result.empty()) {
-
         auto prefix = provider["prefix"].IsDefined() ? provider["prefix"].as<std::string>() : "Generated";
         for (const auto &[name, nodes]: group_result) {
             auto current_group = YAML::Node();
@@ -127,37 +121,29 @@ YAML::Node Subscriber::get() {
             current_group["name"] = group_name;
             current_group["proxies"] = YAML::Node(YAML::NodeType::Sequence);
 
-            std::map<std::string, size_t> location_counter;
+            // name generator
+            auto name_generator = get_name_generator();
+
+            // processing individual proxy
             for (const auto &proxy: nodes) {
-                const auto name_generator = [&](const YAML::Node &attributes) {
-                    auto id = attributes["id"].as<int>();
-                    auto name = attributes["location"].as<std::string>();
-                    if (id == -1) {
-                        location_counter.try_emplace(name, 0);
-                        id = ++location_counter[name];
-                    }
-
-                    return use_emoji ? fmt::format("{}{:>02d}", name2emoji(name), id) : proxy["name"].as<std::string>();
-                };
-
                 if (proxy.IsDefined() && proxy.IsMap()) {
-                    auto proxy_ref = proxy;
-                    auto proxy_name = proxy_ref["name"].as<std::string>();
+                    auto proxy_ptr = YAML::Node(proxy);
+                    auto proxy_name = proxy["name"].as<std::string>();
                     spdlog::trace("Add proxy {} to group {}", proxy_name, group_name);
 
                     // only update name when grouping is enabled
-                    if (proxy_ref["attributes"].IsDefined()) {
-                        proxy_name = name_generator(proxy_ref["attributes"]);
-                        proxy_ref["name"] = proxy_name;
+                    if (proxy["attributes"].IsDefined()) {
+                        proxy_name = name_generator(proxy);
+                        proxy_ptr["name"] = proxy_name;
                     }
 
                     // do not append duplicated proxy
                     if (name != "netflix") {
-                        node["proxies"].push_back(proxy_ref);
+                        node["proxies"].push_back(proxy);
                     }
                     current_group["proxies"].push_back(proxy_name);
                     // strip attributes
-                    proxy_ref.remove("attributes");
+                    proxy_ptr.remove("attributes");
                 }
             }
         }
@@ -232,6 +218,30 @@ std::vector<std::string> Subscriber::get_regex_result(const std::smatch &result)
     return regex_result;
 }
 
+std::function<std::string(const YAML::Node &)> Subscriber::get_name_generator() {
+    return [&](const YAML::Node &proxy) {
+        static std::map<std::string, size_t> location_counter;
+
+        auto attributes = proxy["attributes"];
+        auto id = attributes["id"].as<int>();
+        auto name = attributes["location"].as<std::string>();
+        if (id == -1) {
+            location_counter.try_emplace(name, 0);
+            id = ++location_counter[name];
+        }
+
+        return use_emoji ? fmt::format("{}{:>02d}", name2emoji(name), id) : proxy["name"].as<std::string>();
+    };
+}
+
+void Subscriber::remove_groups(std::vector<std::string> &remove_list) {
+    for (const auto &name: remove_list) {
+        group_result.erase(name);
+        spdlog::debug("Remove group {}", name);
+    }
+    remove_list.clear();
+}
+
 void Subscriber::set_grouping(bool flag) {
     this->enable_grouping = flag;
 }
@@ -243,6 +253,7 @@ void Subscriber::set_provider(const YAML::Node &_provider) {
 void Subscriber::set_use_emoji(bool _use_emoji) {
     this->use_emoji = _use_emoji;
 }
+
 void Subscriber::set_emoji_map(const YAML::Node &_emoji_map) {
     this->emoji_map = _emoji_map;
 }

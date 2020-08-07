@@ -175,12 +175,11 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
     }
 
     // replace anchor in user-defined rules
-    for (auto rule : yaml_template["rules"]) {
+    for (const auto &rule : yaml_template["rules"]) {
         auto s_rule = rule.as<std::string>();
         if (s_rule.find(anchor) != std::string::npos) {
             Utils::replace(s_rule, {{anchor, anchor_group_name}});
-            auto node_rule = YAML::Node(rule);
-            node_rule = s_rule;
+            (YAML::Node(rule)) = s_rule;
         }
     }
 

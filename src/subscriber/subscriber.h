@@ -52,6 +52,10 @@ protected:
 
     std::string name2emoji(const std::string &name);
 
+    std::function<std::string(const YAML::Node &)> get_name_generator();
+
+    void remove_groups(std::vector<std::string>& remove_list);
+
     static void append_attributes(const NameAttribute &attribute, YAML::Node &node);
 
 protected:
