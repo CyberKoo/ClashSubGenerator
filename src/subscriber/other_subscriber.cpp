@@ -6,15 +6,16 @@
 #include <yaml-cpp/yaml.h>
 
 #include "other_subscriber.h"
+#include "../uri.h"
 #include "../base64.h"
 #include "../utils.h"
-#include "../httpclient.h"
+#include "../config_loader.h"
 #include "../exception/csg_exeption.h"
 #include "../proxy_decoder/proxy_decoder.h"
 #include "../proxy_decoder/proxy_decoder_factory.h"
 
 void OtherSubscriber::load(std::string_view uri) {
-    auto config = HttpClient::get(uri);
+    auto config = ConfigLoader::load_raw(uri);
     proxies = decode_config(config);
 
     if (proxies.size() > 0) {

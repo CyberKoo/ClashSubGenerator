@@ -7,10 +7,12 @@
 #include <spdlog/spdlog.h>
 #include <yaml-cpp/yaml.h>
 
+#include "uri.h"
 #include "hash.h"
 #include "utils.h"
 #include "filesystem.h"
 #include "yaml_helper.h"
+#include "config_loader.h"
 #include "rule_extractor.h"
 #include "clash_generator.h"
 #include "subscriber/subscriber_factory.h"
@@ -95,12 +97,12 @@ YAML::Node ClashSubGenerator::create_emoji_map(std::string_view provider_name) {
 YAML::Node ClashSubGenerator::get_config(std::string_view filename, std::string_view repository_filename) {
     auto path = get_file_full_path(filename);
     if (FileSystem::exists(path)) {
-        return YAMLHelper::load_local(path);
+        return ConfigLoader::load_local_yaml(path);
     } else {
         if (!config.local_only) {
             spdlog::warn("Unable to load local file: {}, download from repository", repository_filename);
-            auto uri = fmt::format("{}/{}", config.repository_url, repository_filename);
-            return YAMLHelper::load_remote(uri);
+            auto uri = Uri::Parse(fmt::format("{}/{}", config.repository_url, repository_filename));
+            return ConfigLoader::load_remote_yaml(uri);
         } else {
             spdlog::error("Local only enabled, not allowed to fetch configuration from repository");
             throw FileSystemException(fmt::format("file {} doesn't exist", filename));

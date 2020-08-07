@@ -16,6 +16,8 @@ Uri Uri::Parse(std::string_view uri) {
         return result;
     }
 
+    result.uri = uri;
+
     // get query start
     auto queryStart = std::find(uri.begin(), uri.end(), '?');
 
@@ -95,4 +97,8 @@ std::string_view Uri::getHost() const {
 
 int Uri::getPort() const {
     return Port;
+}
+
+std::string_view Uri::to_string() const {
+    return uri;
 }

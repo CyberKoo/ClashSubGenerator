@@ -7,6 +7,7 @@
 
 #include "exception/invalid_http_status_exception.h"
 #include "exception/request_failure_exception.h"
+#include "uri.h"
 #include "httpclient.h"
 #include "filesystem.h"
 
@@ -25,11 +26,9 @@ std::unique_ptr<httplib::ClientImpl> HttpClient::connect(const Uri &uri) {
     return client;
 }
 
-std::string HttpClient::get(std::string_view uri) {
-    spdlog::debug("Fetch uri {}", uri);
-    auto parse_result = Uri::Parse(uri);
-    auto client = HttpClient::connect(parse_result);
-    auto response = client->Get(fmt::format("{}?{}", parse_result.getPath(), parse_result.getQueryString()).c_str(),
+std::string HttpClient::get(const Uri &uri) {
+    auto client = HttpClient::connect(uri);
+    auto response = client->Get(fmt::format("{}?{}", uri.getPath(), uri.getQueryString()).c_str(),
                                 {{"User-Agent", get_user_agent()}});
 
     if (response) {
@@ -39,8 +38,15 @@ std::string HttpClient::get(std::string_view uri) {
             throw InvalidHttpStatusException(fmt::format("Server responded with status {0}", response->status));
         }
     } else {
-        throw RequestFailureException(fmt::format("Fetch {0} failed", uri));
+        throw RequestFailureException(fmt::format("Fetch {0} failed", uri.to_string()));
     }
+}
+
+std::string HttpClient::get(std::string_view uri) {
+    spdlog::debug("Fetch uri {}", uri);
+    auto parse_result = Uri::Parse(uri);
+
+    return get(parse_result);
 }
 
 std::unique_ptr<httplib::ClientImpl> HttpClient::get_http_client(std::string_view host, int port) {

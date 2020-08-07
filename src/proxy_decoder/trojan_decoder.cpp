@@ -14,8 +14,7 @@
 YAML::Node TrojanDecoder::decode_config(const Uri &uri) {
     YAML::Node proxy = YAML::Node(YAML::NodeType::Map);
 
-    auto[name, raw_config] = strip_name(uri.getQueryString());
-    auto queryString = raw_config;
+    auto[name, queryString] = strip_name(uri.getQueryString());
     auto parameters = get_parameters(queryString);
     auto serverKey = Utils::split(uri.getHost(), '@');
 

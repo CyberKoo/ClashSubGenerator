@@ -8,25 +8,9 @@
 #include <fstream>
 
 #include "yaml_helper.h"
-#include "httpclient.h"
 #include "utils.h"
-#include "filesystem.h"
 #include "exception/file_write_exception.h"
 #include "exception/missing_key_exception.h"
-#include "exception/file_system_exception.h"
-
-YAML::Node YAMLHelper::load_remote(std::string_view uri) {
-    auto remote_config = HttpClient::get(uri);
-    return YAML::Load(remote_config);
-}
-
-YAML::Node YAMLHelper::load_local(const std::string &path) {
-    if (FileSystem::exists(path)) {
-        return YAML::LoadFile(path);
-    }
-
-    throw FileSystemException(fmt::format("File {} doesn't exist", path));
-}
 
 std::string YAMLHelper::search_key(const YAML::Node &node, const std::vector<std::string> &keys) {
     if (node.IsDefined() && !node.IsScalar()) {

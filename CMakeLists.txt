@@ -83,11 +83,12 @@ set(FileSystem src/filesystem.cpp src/filesystem.h)
 set(version src/version.cpp src/version.h)
 set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
+set(ConfigLoader src/config_loader.cpp src/config_loader.h)
 set(ClashSubGenerator src/clash_generator.cpp src/clash_generator.h)
 
 add_executable(ClashSubGenerator
         src/main.cpp src/config.h src/enum_mapper.h src/enumerate.h
-        ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions}
+        ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions} ${ConfigLoader}
         ${ProxyDecoder} ${Subscriber} ${utils} ${Hash} ${FileSystem} ${base64} ${ClashSubGenerator}
         )
 target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto std::filesystem)

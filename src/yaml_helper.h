@@ -8,13 +8,7 @@
 #include <map>
 #include <yaml-cpp/node/node.h>
 
-#include "enumerate.h"
-
 namespace YAMLHelper {
-    YAML::Node load_remote(std::string_view uri);
-
-    YAML::Node load_local(const std::string &path);
-
     void write_yaml(const YAML::Node &node, std::string_view file);
 
     std::string search_key(const YAML::Node &node, const std::vector<std::string> &keys);

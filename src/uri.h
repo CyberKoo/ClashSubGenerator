@@ -19,6 +19,8 @@ public:
 
     [[nodiscard]] int getPort() const;
 
+    [[nodiscard]] std::string_view to_string() const;
+
 private:
     Uri() = default;
 
@@ -26,6 +28,7 @@ private:
     std::string Path;
     std::string Protocol;
     std::string Host;
+    std::string uri;
     int Port = 0;
 };
 

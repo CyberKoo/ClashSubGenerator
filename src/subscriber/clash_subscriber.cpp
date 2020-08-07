@@ -6,12 +6,12 @@
 #include <yaml-cpp/yaml.h>
 
 #include "clash_subscriber.h"
-#include "../yaml_helper.h"
+#include "../config_loader.h"
 #include "../exception/missing_key_exception.h"
 
 void ClashSubscriber::load(std::string_view uri) {
     try {
-        auto yaml = YAMLHelper::load_remote(uri);
+        auto yaml = ConfigLoader::load_yaml(uri);
         proxies = yaml["proxies"];
         spdlog::info("Total number of proxies loaded {}", proxies.size());
     } catch (YAML::ParserException &e) {

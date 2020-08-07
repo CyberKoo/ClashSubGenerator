@@ -5,18 +5,20 @@
 #ifndef CLASHSUBGENERATOR_HTTPCLIENT_H
 #define CLASHSUBGENERATOR_HTTPCLIENT_H
 
-#include "uri.h"
-
 // forward declaration
 namespace httplib {
     class ClientImpl;
 }
+
+class Uri;
 
 class HttpClient {
 public:
     static std::unique_ptr<httplib::ClientImpl> connect(const Uri &uri);
 
     static std::string get(std::string_view uri);
+
+    static std::string get(const Uri &uri);
 
 private:
     static std::unique_ptr<httplib::ClientImpl> get_http_client(std::string_view host, int port);
