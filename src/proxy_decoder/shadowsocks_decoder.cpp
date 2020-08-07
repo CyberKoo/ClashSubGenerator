@@ -17,7 +17,7 @@ YAML::Node ShadowsocksDecoder::decode_config(const Uri &uri) {
     auto credentials_pos = decoded_config.find('@');
 
     proxy["type"] = std::string("ss");
-    proxy["name"] = name;
+    proxy["name"] = Utils::url_decode(name, true);
     if (name.empty()) {
         proxy["name"] = fmt::format("shadowsocks_{}", Utils::get_random_string(10));
     }

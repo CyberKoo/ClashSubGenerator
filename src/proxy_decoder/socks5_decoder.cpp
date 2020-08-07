@@ -20,7 +20,7 @@ YAML::Node Socks5Decoder::decode_config(const Uri &uri) {
     auto credentials = Utils::split(config_view.substr(0, credentials_pos), ':');
 
     proxy["type"] = std::string("socks5");
-    proxy["name"] = name;
+    proxy["name"] = Utils::url_decode(name, true);
     if (name.empty()) {
         proxy["name"] = fmt::format("socks5_{}", Utils::get_random_string(10));
     }
