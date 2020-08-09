@@ -11,7 +11,6 @@
 #include "../exception/unsupported_configuration.h"
 
 YAML::Node ShadowsocksDecoder::decode_config(const Uri &uri) {
-    YAML::Node proxy = YAML::Node(YAML::NodeType::Map);
     auto [name, raw_config] = strip_name(uri.getHost());
     auto decoded_config = decode_base64(raw_config);
     auto credentials_pos = decoded_config.find('@');

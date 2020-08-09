@@ -24,8 +24,6 @@ private:
 private:
     YAML::Node v2ray_config;
 
-    YAML::Node proxy;
-
     std::unordered_map<std::string_view, std::string_view> clash2vmess;
 
     std::unordered_map<std::string_view, std::function<void()>> network_mapper;

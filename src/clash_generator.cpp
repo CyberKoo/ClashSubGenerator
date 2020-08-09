@@ -15,6 +15,7 @@
 #include "config_loader.h"
 #include "rule_extractor.h"
 #include "clash_generator.h"
+#include "subscriber/subscriber.h"
 #include "subscriber/subscriber_factory.h"
 #include "exception/file_system_exception.h"
 #include "exception/missing_key_exception.h"
@@ -119,9 +120,9 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
         auto p_group_name = preferred_group.as<std::string>();
         spdlog::debug("Preferred group is set to {}, trying to find and move it to the front", p_group_name);
         auto node_name_list = node["group_name"].as<std::vector<std::string>>();
+
         for (auto &name: node_name_list) {
-            auto result = name.find(p_group_name);
-            if (result != std::string::npos) {
+            if (name.find(p_group_name) != std::string::npos) {
                 std::swap(node_name_list.front(), name);
                 spdlog::debug("Group {} is moved to the front", p_group_name);
                 break;

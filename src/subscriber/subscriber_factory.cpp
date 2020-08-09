@@ -4,9 +4,11 @@
 
 #include <fmt/format.h>
 
-#include "subscriber_factory.h"
+#include "subscriber.h"
 #include "clash_subscriber.h"
 #include "other_subscriber.h"
+#include "subscriber_factory.h"
+#include "../config.h"
 #include "../exception/unsupported_configuration.h"
 
 std::unique_ptr<Subscriber> SubscriberFactory::make(SubscribeType type) {

@@ -113,13 +113,13 @@ YAML::Node Subscriber::get() {
     if (!group_result.empty()) {
         auto prefix = provider["prefix"].IsDefined() ? provider["prefix"].as<std::string>() : "Generated";
         for (const auto &[name, nodes]: group_result) {
-            auto current_group = YAML::Node();
             auto group_name = fmt::format("{}-{}", prefix, name);
             node["group_name"].push_back(group_name);
-            node["groups"].push_back(current_group);
             spdlog::debug("Processing group {}", group_name);
+            auto current_group = YAML::Node();
             current_group["name"] = group_name;
             current_group["proxies"] = YAML::Node(YAML::NodeType::Sequence);
+            node["groups"].push_back(current_group);
 
             // name generator
             auto name_generator = get_name_generator();
@@ -128,20 +128,21 @@ YAML::Node Subscriber::get() {
             for (const auto &proxy: nodes) {
                 if (proxy.IsDefined() && proxy.IsMap()) {
                     auto proxy_ptr = YAML::Node(proxy);
-                    auto proxy_name = proxy["name"].as<std::string>();
-                    spdlog::trace("Add proxy {} to group {}", proxy_name, group_name);
+                    auto proxy_name = proxy["name"];
+                    spdlog::trace("Add proxy {} to group {}", proxy_name.as<std::string>(), group_name);
 
                     // only update name when grouping is enabled
                     if (proxy["attributes"].IsDefined()) {
                         proxy_name = name_generator(proxy);
-                        proxy_ptr["name"] = proxy_name;
                     }
 
                     // do not append duplicated proxy
                     if (name != "netflix") {
                         node["proxies"].push_back(proxy);
                     }
-                    current_group["proxies"].push_back(proxy_name);
+                    // current_group["proxies"].push_back(proxy_name);
+                    current_group["proxies"].push_back(proxy_name.as<std::string>());
+
                     // strip attributes
                     proxy_ptr.remove("attributes");
                 }

@@ -6,8 +6,9 @@
 #define CLASHSUBGENERATOR_SUBSCRIBER_FACTORY_H
 
 #include <memory>
-#include "subscriber.h"
-#include "../config.h"
+
+class Subscriber;
+enum class SubscribeType;
 
 class SubscriberFactory {
 public:

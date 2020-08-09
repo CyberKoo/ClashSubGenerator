@@ -11,8 +11,6 @@
 #include "../exception/unsupported_configuration.h"
 
 YAML::Node Socks5Decoder::decode_config(const Uri &uri) {
-    YAML::Node proxy = YAML::Node(YAML::NodeType::Map);
-
     auto[name, raw_config] = strip_name(uri.getBody());
     auto decoded_config = decode_base64(raw_config);
     auto config_view = std::string_view(decoded_config);

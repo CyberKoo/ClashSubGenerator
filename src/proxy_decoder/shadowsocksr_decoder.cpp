@@ -22,32 +22,30 @@ YAML::Node ShadowsocksRDecoder::decode_config(const Uri &uri) {
     auto ssr = Utils::split(decoded_config, '/');
     auto main_config = Utils::split(ssr[0], ':');
 
-    YAML::Node node(YAML::NodeType::Map);
-
     // additional parameters
     auto parameters = get_ssr_parameters(ssr[1]);
     if (!parameters["remarks"].empty()) {
-        node["name"] = parameters["remarks"];
+        proxy["name"] = parameters["remarks"];
     } else {
-        node["name"] = fmt::format("shadowsocksr_{}", Utils::get_random_string(10));
+        proxy["name"] = fmt::format("shadowsocksr_{}", Utils::get_random_string(10));
     }
-    node["type"] = "ssr";
-    node["server"] = main_config[0];
-    node["port"] = main_config[1];
-    node["protocol"] = main_config[2];
-    node["cipher"] = main_config[3];
-    node["obfs"] = main_config[4];
-    node["password"] = decode_base64(main_config[5]);
+    proxy["type"] = "ssr";
+    proxy["server"] = main_config[0];
+    proxy["port"] = main_config[1];
+    proxy["protocol"] = main_config[2];
+    proxy["cipher"] = main_config[3];
+    proxy["obfs"] = main_config[4];
+    proxy["password"] = decode_base64(main_config[5]);
 
     if (parameters.find("obfsparam") != parameters.end()) {
-        node["obfs-param"] = parameters["obfsparam"];
+        proxy["obfs-param"] = parameters["obfsparam"];
     }
 
     if (parameters.find("protoparam") != parameters.end()) {
-        node["protocol-param"] = parameters["protoparam"];
+        proxy["protocol-param"] = parameters["protoparam"];
     }
 
-    return node;
+    return proxy;
 }
 
 std::map<std::string, std::string> ShadowsocksRDecoder::get_ssr_parameters(std::string &query_string) {

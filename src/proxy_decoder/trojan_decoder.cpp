@@ -12,8 +12,6 @@
 #include "../exception/unsupported_configuration.h"
 
 YAML::Node TrojanDecoder::decode_config(const Uri &uri) {
-    YAML::Node proxy = YAML::Node(YAML::NodeType::Map);
-
     auto[name, queryString] = strip_name(uri.getQueryString());
     auto parameters = get_parameters(queryString);
     auto serverKey = Utils::split(uri.getHost(), '@');

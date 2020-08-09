@@ -20,6 +20,9 @@ protected:
     static std::string decode_base64(std::string_view data);
 
     static std::pair<std::string, std::string> strip_name(std::string_view content);
+
+protected:
+    YAML::Node proxy;
 };
 
 
