@@ -16,7 +16,7 @@ Uri Uri::Parse(std::string_view uri) {
         return result;
     }
 
-    result.uri = uri;
+    result.RawUri = uri;
 
     // get query start
     auto queryStart = std::find(uri.begin(), uri.end(), '?');
@@ -40,6 +40,8 @@ Uri Uri::Parse(std::string_view uri) {
     if (result.Protocol.empty()) {
         throw InvalidURIException(fmt::format("URI doesn't have a valid schema, {0}", uri));
     }
+
+    result.Body = std::string(protocolEnd, uri.end());
 
     // host
     auto hostStart = protocolEnd;
@@ -99,6 +101,10 @@ int Uri::getPort() const {
     return Port;
 }
 
-std::string_view Uri::to_string() const {
-    return uri;
+std::string_view Uri::getRawUri() const {
+    return RawUri;
+}
+
+std::string_view Uri::getBody() const {
+    return Body;
 }

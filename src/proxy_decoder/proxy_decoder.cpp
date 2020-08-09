@@ -2,11 +2,9 @@
 // Created by Kotarou on 2020/6/26.
 //
 
-#include <algorithm>
 #include <yaml-cpp/yaml.h>
 
 #include "proxy_decoder.h"
-#include "shadowsocksr_decoder.h"
 #include "../uri.h"
 #include "../base64.h"
 
@@ -23,5 +21,3 @@ std::pair<std::string, std::string> ProxyDecoder::strip_name(std::string_view co
 
     return std::make_pair("", content.data());
 }
-
-

@@ -282,9 +282,8 @@ YAML::Node ClashSubGenerator::yaml_proxy_group(const std::string &group_name, Pr
     return group_content;
 }
 
-YAML::Node
-ClashSubGenerator::yaml_provider_group(ProviderType type, const std::string &path, const std::string &url,
-                                       bool hc_enable) {
+YAML::Node ClashSubGenerator::yaml_provider_group(ProviderType type, const std::string &path, const std::string &url,
+                                                  bool hc_enable) {
     auto group_content = YAML::Node();
     group_content["type"] = YAML::Node(get_provider_type_name(type));
 

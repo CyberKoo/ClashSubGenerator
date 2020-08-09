@@ -13,7 +13,7 @@
 YAML::Node Socks5Decoder::decode_config(const Uri &uri) {
     YAML::Node proxy = YAML::Node(YAML::NodeType::Map);
 
-    auto[name, raw_config] = strip_name(fmt::format("{}{}", uri.getHost(), uri.getPath()));
+    auto[name, raw_config] = strip_name(uri.getBody());
     auto decoded_config = decode_base64(raw_config);
     auto config_view = std::string_view(decoded_config);
     auto credentials_pos = decoded_config.find('@');

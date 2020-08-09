@@ -20,13 +20,10 @@ std::string padding(std::string_view data) {
     // the reminder value can only be 0, 2 or 3
     unsigned reminder = data.size() % 4;
     auto new_data = std::string(data);
-    if (reminder > 1) {
-
-        if (reminder == 2) {
-            new_data += "==";
-        } else if (reminder == 3) {
-            new_data += "=";
-        }
+    if (reminder == 2) {
+        new_data += "==";
+    } else if (reminder == 3) {
+        new_data += "=";
     }
 
     return new_data;

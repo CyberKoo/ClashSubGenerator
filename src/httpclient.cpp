@@ -38,7 +38,7 @@ std::string HttpClient::get(const Uri &uri) {
             throw InvalidHttpStatusException(fmt::format("Server responded with status {0}", response->status));
         }
     } else {
-        throw RequestFailureException(fmt::format("Fetch {0} failed", uri.to_string()));
+        throw RequestFailureException(fmt::format("Fetch {0} failed", uri.getRawUri()));
     }
 }
 
