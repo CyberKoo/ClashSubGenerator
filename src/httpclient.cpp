@@ -19,6 +19,7 @@ std::unique_ptr<httplib::ClientImpl> HttpClient::connect(const Uri &uri) {
         client = get_https_client(uri.getHost(), uri.getPort());
     }
 
+    client->set_default_headers({{"User-Agent", get_user_agent()}});
     client->set_connection_timeout(5);
     client->set_read_timeout(5, 1000);
     client->set_follow_location(true);
@@ -28,8 +29,7 @@ std::unique_ptr<httplib::ClientImpl> HttpClient::connect(const Uri &uri) {
 
 std::string HttpClient::get(const Uri &uri) {
     auto client = HttpClient::connect(uri);
-    auto response = client->Get(fmt::format("{}?{}", uri.getPath(), uri.getQueryString()).c_str(),
-                                {{"User-Agent", get_user_agent()}});
+    auto response = client->Get(fmt::format("{}?{}", uri.getPath(), uri.getQueryString()).c_str());
 
     if (response) {
         if (response->status == 200) {
