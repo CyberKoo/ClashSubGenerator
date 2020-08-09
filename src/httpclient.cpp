@@ -11,12 +11,18 @@
 #include "httpclient.h"
 #include "filesystem.h"
 
-std::unique_ptr<httplib::ClientImpl> HttpClient::connect(const Uri &uri) {
-    std::unique_ptr<httplib::ClientImpl> client;
-    if (uri.getProtocol() == "http") {
-        client = get_http_client(uri.getHost(), uri.getPort());
-    } else if (uri.getProtocol() == "https") {
-        client = get_https_client(uri.getHost(), uri.getPort());
+std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
+    auto client = std::make_unique<httplib::Client>(
+            fmt::format("{}://{}:{}", uri.getSchema(), uri.getHost(), uri.getPort()).data());
+
+    // if is https
+    if (uri.getSchema() == "https") {
+        auto ca_path = get_ca_path();
+
+        if (!ca_path.empty()) {
+            client->set_ca_cert_path(ca_path.c_str());
+            client->enable_server_certificate_verification(true);
+        }
     }
 
     client->set_default_headers({{"User-Agent", get_user_agent()}});
@@ -47,22 +53,6 @@ std::string HttpClient::get(std::string_view uri) {
     auto parse_result = Uri::Parse(uri);
 
     return get(parse_result);
-}
-
-std::unique_ptr<httplib::ClientImpl> HttpClient::get_http_client(std::string_view host, int port) {
-    return std::make_unique<httplib::ClientImpl>(host.data(), port);
-}
-
-std::unique_ptr<httplib::ClientImpl> HttpClient::get_https_client(std::string_view host, int port) {
-    auto client = std::make_unique<httplib::SSLClient>(host.data(), port);
-    auto ca_path = get_ca_path();
-
-    if (!ca_path.empty()) {
-        client->set_ca_cert_path(ca_path.c_str());
-        client->enable_server_certificate_verification(true);
-    }
-
-    return client;
 }
 
 std::string HttpClient::get_ca_path() {

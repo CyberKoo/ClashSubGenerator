@@ -13,7 +13,7 @@ public:
 
     [[nodiscard]] std::string_view getPath() const;
 
-    [[nodiscard]] std::string_view getProtocol() const;
+    [[nodiscard]] std::string_view getSchema() const;
 
     [[nodiscard]] std::string_view getHost() const;
 
@@ -29,7 +29,7 @@ private:
 private:
     std::string QueryString;
     std::string Path;
-    std::string Protocol;
+    std::string Schema;
     std::string Host;
     std::string RawUri;
     std::string Body;

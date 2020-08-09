@@ -16,7 +16,7 @@ std::string ConfigLoader::load_raw(std::string_view uri) {
     auto uri_result = Uri::Parse(uri);
 
     // add support of protocol file://
-    if (uri_result.getProtocol() == "file") {
+    if (uri_result.getSchema() == "file") {
         spdlog::debug("load local file {}", uri);
         return ConfigLoader::load_local_raw(uri_result.getPath());
     } else {
@@ -42,7 +42,7 @@ YAML::Node ConfigLoader::load_yaml(std::string_view uri) {
     auto uri_result = Uri::Parse(uri);
 
     // add support of protocol file://
-    if (uri_result.getProtocol() == "file") {
+    if (uri_result.getSchema() == "file") {
         spdlog::debug("load local yaml file {}", uri);
         return ConfigLoader::load_local_yaml(uri_result.getPath());
     } else {

@@ -21,32 +21,32 @@ Uri Uri::Parse(std::string_view uri) {
     // get query start
     auto queryStart = std::find(uri.begin(), uri.end(), '?');
 
-    // protocol
-    auto protocolStart = uri.begin();
-    auto protocolEnd = std::find(protocolStart, uri.end(), ':');
+    // schema
+    auto schemaStart = uri.begin();
+    auto schemaEnd = std::find(schemaStart, uri.end(), ':');
 
-    if (protocolEnd != uri.end()) {
-        std::string port = &*(protocolEnd);
+    if (schemaEnd != uri.end()) {
+        std::string port = &*(schemaEnd);
         if ((port.length() > 3) && (port.substr(0, 3) == "://")) {
-            result.Protocol = Utils::str_tolower(std::string(protocolStart, protocolEnd));
-            protocolEnd += 3;   //      ://
+            result.Schema = Utils::str_tolower(std::string(schemaStart, schemaEnd));
+            schemaEnd += 3;   //      ://
         } else {
-            protocolEnd = uri.begin();  // no protocol
+            schemaEnd = uri.begin();  // no schema
         }
     } else {
-        protocolEnd = uri.begin();  // no protocol
+        schemaEnd = uri.begin();  // no schema
     }
 
-    if (result.Protocol.empty()) {
+    if (result.Schema.empty()) {
         throw InvalidURIException(fmt::format("URI doesn't have a valid schema, {0}", uri));
     }
 
-    result.Body = std::string(protocolEnd, uri.end());
+    result.Body = std::string(schemaEnd, uri.end());
 
     // host
-    auto hostStart = protocolEnd;
+    auto hostStart = schemaEnd;
     auto pathStart = std::find(hostStart, uri.end(), '/');
-    auto hostEnd = std::find(protocolEnd, (pathStart != uri.end()) ? pathStart : queryStart, ':');
+    auto hostEnd = std::find(schemaEnd, (pathStart != uri.end()) ? pathStart : queryStart, ':');
 
     result.Host = std::string(hostStart, hostEnd);
 
@@ -61,9 +61,9 @@ Uri Uri::Parse(std::string_view uri) {
     }
 
     if (result.Port == 0) {
-        if (result.Protocol == "http") {
+        if (result.Schema == "http") {
             result.Port = 80;
-        } else if (result.Protocol == "https") {
+        } else if (result.Schema == "https") {
             result.Port = 443;
         }
     }
@@ -89,8 +89,8 @@ std::string_view Uri::getPath() const {
     return Path;
 }
 
-std::string_view Uri::getProtocol() const {
-    return Protocol;
+std::string_view Uri::getSchema() const {
+    return Schema;
 }
 
 std::string_view Uri::getHost() const {

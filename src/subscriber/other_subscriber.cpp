@@ -36,8 +36,8 @@ YAML::Node OtherSubscriber::decode_config(std::string_view config) {
                 Utils::trim(proxy);
                 // decode config
                 auto uri = Uri::Parse(proxy);
-                auto decoder = ProxyDecoderFactory::make(uri.getProtocol());
-                spdlog::debug("select {} decoder for processing the raw data", uri.getProtocol());
+                auto decoder = ProxyDecoderFactory::make(uri.getSchema());
+                spdlog::debug("select {} decoder for processing the raw data", uri.getSchema());
 
                 auto proxy_config = decoder->decode_config(uri);
                 if (proxy_config.IsDefined()) {

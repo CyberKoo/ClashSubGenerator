@@ -7,24 +7,20 @@
 
 // forward declaration
 namespace httplib {
-    class ClientImpl;
+    class Client;
 }
 
 class Uri;
 
 class HttpClient {
 public:
-    static std::unique_ptr<httplib::ClientImpl> connect(const Uri &uri);
+    static std::unique_ptr<httplib::Client> connect(const Uri &uri);
 
     static std::string get(std::string_view uri);
 
     static std::string get(const Uri &uri);
 
 private:
-    static std::unique_ptr<httplib::ClientImpl> get_http_client(std::string_view host, int port);
-
-    static std::unique_ptr<httplib::ClientImpl> get_https_client(std::string_view host, int port);
-
     static std::string get_ca_path();
 
     static std::string get_user_agent();
