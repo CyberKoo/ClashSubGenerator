@@ -142,12 +142,12 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
 
     bool anchor_replaced = false;
     const std::string anchor = "__ANCHOR__";
-    auto anchor_group_name = config.provider_name.empty() ? "Generated" : config.provider_name;
+    auto new_group_name = config.provider_name.empty() ? "Generated" : config.provider_name;
     for (auto group : yaml_template["proxy-groups"]) {
         auto name = group["name"].as<std::string>();
         if (name == anchor) {
-            SPDLOG_DEBUG("Replace anchor with generated group {}", anchor_group_name);
-            group["name"] = anchor_group_name;
+            SPDLOG_DEBUG("Anchor group replace by {}", new_group_name);
+            group["name"] = new_group_name;
             group["proxies"] = group_name;
             anchor_replaced = true;
             continue;
@@ -156,8 +156,8 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
         if (group["proxies"].IsDefined()) {
             auto proxies = group["proxies"].as<std::vector<std::string>>();
             if (std::find(proxies.begin(), proxies.end(), anchor) != proxies.end()) {
-                SPDLOG_DEBUG("Replace anchor proxy with provider name in group {}", name);
-                std::replace(proxies.begin(), proxies.end(), anchor, anchor_group_name);
+                SPDLOG_DEBUG("Replace anchor group in group", name);
+                std::replace(proxies.begin(), proxies.end(), anchor, new_group_name);
                 group["proxies"] = proxies;
                 continue;
             }
@@ -167,7 +167,7 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
     // insert node when no anchor defined
     if (!anchor_replaced) {
         SPDLOG_DEBUG("Anchor group not found, insert generated group to the end");
-        auto group_node = yaml_proxy_group(anchor_group_name, ProxyGroupType::SELECT);
+        auto group_node = yaml_proxy_group(new_group_name, ProxyGroupType::SELECT);
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
     }
@@ -176,7 +176,7 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
     for (const auto &rule : yaml_template["rules"]) {
         auto s_rule = rule.as<std::string>();
         if (s_rule.find(anchor) != std::string::npos) {
-            Utils::replace(s_rule, {{anchor, anchor_group_name}});
+            Utils::replace(s_rule, {{anchor, new_group_name}});
             (YAML::Node(rule)) = s_rule;
         }
     }

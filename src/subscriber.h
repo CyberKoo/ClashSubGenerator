@@ -14,8 +14,6 @@ enum class SubscribeType;
 
 class Subscriber {
 public:
-    using node_vector = std::vector<YAML::Node>;
-
     explicit Subscriber(SubscribeType type);
 
     ~Subscriber() = default;
@@ -26,9 +24,9 @@ public:
 
     YAML::Node get();
 
-    void set_provider(const YAML::Node &_provider);
+    void set_provider(const YAML::Node &provider_);
 
-    void set_emoji_map(const YAML::Node &_emoji_map);
+    void set_emoji_map(const YAML::Node &emoji_map_);
 
     void set_name_parser(const std::string &pattern);
 
@@ -38,7 +36,7 @@ public:
 
     void set_regex_collapse(bool flag);
 
-    void set_use_emoji(bool _use_emoji);
+    void set_use_emoji(bool use_emoji_);
 
 protected:
     // location, id, netflix, amplification
@@ -72,7 +70,7 @@ protected:
     bool regex_collapse;
     bool enable_grouping;
     bool exclude_amplified_node;
-    std::map<std::string, node_vector> group_result;
+    std::map<std::string, std::vector<YAML::Node>> group_result;
 };
 
 #endif //CLASHSUBGENERATOR_SUBSCRIBER_H

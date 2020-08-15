@@ -109,8 +109,8 @@ YAML::Node Subscriber::decode_config(std::string_view config) {
 }
 
 void Subscriber::grouping(size_t group_min_size) {
-    auto netflix_group = node_vector();
-    auto ungrouped = node_vector();
+    auto netflix_group = std::vector<YAML::Node>();
+    auto ungrouped = std::vector<YAML::Node>();
 
     if (enable_grouping) {
         SPDLOG_INFO("Grouping proxies by name, minimum size for a group is {}", group_min_size);
@@ -138,12 +138,10 @@ void Subscriber::grouping(size_t group_min_size) {
             }
 
             // initialize vector
-            if (!group_result.count(location)) {
-                group_result.insert({location, node_vector()});
-            }
+            group_result.try_emplace(location, std::vector<YAML::Node>());
 
             // insert into map
-            group_result.at(location).push_back(proxy);
+            group_result[location].push_back(proxy);
 
             // insert into netflix map
             if (netflix) {
@@ -167,10 +165,10 @@ void Subscriber::grouping(size_t group_min_size) {
         remove_groups(remove_list);
 
         // move group size > group_min_size to left over
-        for (const auto &node: group_result) {
-            if (node.second.size() < group_min_size) {
-                ungrouped.insert(ungrouped.end(), node.second.begin(), node.second.end());
-                remove_list.emplace_back(node.first);
+        for (const auto &[name, node]: group_result) {
+            if (node.size() < group_min_size) {
+                ungrouped.insert(ungrouped.end(), node.begin(), node.end());
+                remove_list.emplace_back(name);
             }
         }
         remove_groups(remove_list);
@@ -338,16 +336,16 @@ void Subscriber::set_grouping(bool flag) {
     this->enable_grouping = flag;
 }
 
-void Subscriber::set_provider(const YAML::Node &_provider) {
-    this->provider = _provider;
+void Subscriber::set_provider(const YAML::Node &provider_) {
+    this->provider = provider_;
 }
 
-void Subscriber::set_use_emoji(bool _use_emoji) {
-    this->use_emoji = _use_emoji;
+void Subscriber::set_use_emoji(bool use_emoji_) {
+    this->use_emoji = use_emoji_;
 }
 
-void Subscriber::set_emoji_map(const YAML::Node &_emoji_map) {
-    this->emoji_map = _emoji_map;
+void Subscriber::set_emoji_map(const YAML::Node &emoji_map_) {
+    this->emoji_map = emoji_map_;
 }
 
 void Subscriber::set_exclude_amplified_node(bool flag) {

@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     CLI11_PARSE(cliApp, argc, argv);
 
     // logging
-    spdlog::set_pattern("[%D %T] [%^%-8l%$] [%s(%!):%#] %v");
+    spdlog::set_pattern("[%D %T] [%^%8l%$] [%20s:%#] %v");
 
     if (config.debug) {
         spdlog::set_level(spdlog::level::debug);
