@@ -15,13 +15,13 @@ int main(int argc, char *argv[]) {
     Config config;
     CLI::App cliApp{"Clash Subscription Generator"};
     auto sub_conf = cliApp.add_option_group("Subscription options");
-    auto type = sub_conf->add_option("-T,--subscribe_type", config.subscribe_type, "Subscription type")
-            ->required(true)->transform(
+    sub_conf->add_option("-T,--subscribe_type", config.subscribe_type, "Subscription type")
+            ->default_val(SubscribeType::AUTO)->required(false)->transform(
                     CLI::CheckedTransformer(EnumMapper::get_subscribe_type_mapper(), CLI::ignore_case));
     auto provider_name = sub_conf->add_option("-n,--provider_name", config.provider_name, "Provider name")
             ->required(false);
     sub_conf->add_option("-s,--subscribe_url", config.subscribe_url, "Subscription url")
-            ->needs(type)->required(true);
+            ->required(true);
 
     auto gen_opts = cliApp.add_option_group("Generator options");
     gen_opts->add_flag("-e,--emoji", config.use_emoji, "Use emoji instead of location name")

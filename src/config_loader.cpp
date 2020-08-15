@@ -8,52 +8,62 @@
 
 #include "config_loader.h"
 #include "uri.h"
+#include "hash.h"
+#include "utils.h"
 #include "httpclient.h"
 #include "filesystem.h"
 #include "exception/file_system_exception.h"
 
-std::string ConfigLoader::load_raw(std::string_view uri) {
+std::shared_ptr<ConfigLoader> ConfigLoader::instance() {
+    static const std::shared_ptr<ConfigLoader> instance{new ConfigLoader{}};
+    return instance;
+}
+
+ConfigLoader::ConfigLoader() {
+    auto instance_id = Utils::get_random_string(15);
+    this->temporary_dir = FileSystem::temp_path(instance_id);
+    FileSystem::mkdir(this->temporary_dir);
+    spdlog::debug("Create temporary directory {}", this->temporary_dir.string());
+}
+
+ConfigLoader::~ConfigLoader() {
+    FileSystem::rmdir(this->temporary_dir);
+    spdlog::debug("Clear temporary directory {}", this->temporary_dir.string());
+}
+
+std::string ConfigLoader::load_raw(std::string_view uri, bool local_only) {
     auto uri_result = Uri::Parse(uri);
 
     // add support of protocol file://
-    if (uri_result.getSchema() == "file") {
-        spdlog::debug("load local file {}", uri);
-        return ConfigLoader::load_local_raw(uri_result.getPath());
+    if (uri_result.getSchema() == "file" || local_only) {
+        spdlog::debug("Load local file {}", uri);
+        return load_local_raw(uri_result.getPath());
     } else {
-        spdlog::debug("load remote file {}", uri);
-        return ConfigLoader::load_remote_raw(uri_result);
+        return load_local_raw(cache_file(uri_result));
+    }
+}
+
+YAML::Node ConfigLoader::load_yaml(std::string_view uri, bool local_only) {
+    auto uri_result = Uri::Parse(uri);
+
+    // add support of protocol file://
+    if (uri_result.getSchema() == "file" || local_only) {
+        spdlog::debug("load local yaml file {}", uri_result.getBody());
+        return load_local_yaml(uri_result.getBody());
+    } else {
+        return load_local_yaml(cache_file(uri_result));
     }
 }
 
 std::string ConfigLoader::load_local_raw(std::string_view path) {
     if (FileSystem::exists(path)) {
         std::fstream fin(path.data());
-        return std::string((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+        auto content = std::string((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+        fin.close();
+        return content;
     }
 
     throw FileSystemException(fmt::format("File {} doesn't exist", path));
-}
-
-std::string ConfigLoader::load_remote_raw(const Uri &uri) {
-    return HttpClient::get(uri);
-}
-
-YAML::Node ConfigLoader::load_yaml(std::string_view uri) {
-    auto uri_result = Uri::Parse(uri);
-
-    // add support of protocol file://
-    if (uri_result.getSchema() == "file") {
-        spdlog::debug("load local yaml file {}", uri);
-        return ConfigLoader::load_local_yaml(uri_result.getPath());
-    } else {
-        spdlog::debug("load remote yaml file {}", uri);
-        return ConfigLoader::load_remote_yaml(uri_result);
-    }
-}
-
-YAML::Node ConfigLoader::load_remote_yaml(const Uri &uri) {
-    auto remote_config = HttpClient::get(uri);
-    return YAML::Load(remote_config);
 }
 
 YAML::Node ConfigLoader::load_local_yaml(std::string_view path) {
@@ -62,4 +72,22 @@ YAML::Node ConfigLoader::load_local_yaml(std::string_view path) {
     }
 
     throw FileSystemException(fmt::format("File {} doesn't exist", path));
+}
+
+std::string ConfigLoader::cache_file(const Uri &uri) {
+    auto sha1_hash = Hash::sha1(uri.getRawUri());
+    auto temp_path = temporary_dir / sha1_hash;
+    if (!FileSystem::exists(temp_path)) {
+        // download and cache
+        auto file = HttpClient::get(uri);
+        std::ofstream fout(temp_path);
+        fout << file;
+        fout.close();
+        spdlog::debug("Uri {} downloaded and cached", uri.getRawUri());
+    } else {
+        spdlog::debug("Uri {} loaded from cached", uri.getRawUri());
+    }
+
+    // return local address
+    return "file://" / temp_path;
 }

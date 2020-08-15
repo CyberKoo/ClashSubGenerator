@@ -10,19 +10,21 @@
 #include <vector>
 #include <yaml-cpp/node/node.h>
 
+enum class SubscribeType;
+
 class Subscriber {
 public:
     using node_vector = std::vector<YAML::Node>;
 
-    explicit Subscriber();
+    explicit Subscriber(SubscribeType type);
 
-    virtual ~Subscriber() = 0;
+    ~Subscriber() = default;
 
-    virtual void load(std::string_view uri) = 0;
+    void load(std::string_view uri);
 
-    virtual void grouping(size_t group_min_size);
+    void grouping(size_t group_min_size);
 
-    virtual YAML::Node get();
+    YAML::Node get();
 
     void set_provider(const YAML::Node &_provider);
 
@@ -39,12 +41,14 @@ public:
     void set_use_emoji(bool _use_emoji);
 
 protected:
-    struct NameAttribute {
-        std::string location;
-        int id;
-        bool netflix;
-        float amplification;
-    };
+    // location, id, netflix, amplification
+    using NameAttribute = std::tuple<std::string, int ,bool, float>;
+
+    void clash_config_loader(std::string_view uri);
+
+    void base64_config_loader(std::string_view uri);
+
+    static YAML::Node decode_config(std::string_view config);
 
     std::vector<std::string> get_regex_result(const std::smatch &result) const;
 
@@ -54,7 +58,7 @@ protected:
 
     std::function<std::string(const YAML::Node &)> get_name_generator();
 
-    void remove_groups(std::vector<std::string>& remove_list);
+    void remove_groups(std::vector<std::string> &remove_list);
 
     static void append_attributes(const NameAttribute &attribute, YAML::Node &node);
 
@@ -63,6 +67,7 @@ protected:
     YAML::Node provider;
     YAML::Node emoji_map;
     std::regex name_parser;
+    SubscribeType type;
     bool use_emoji;
     bool regex_collapse;
     bool enable_grouping;

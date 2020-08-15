@@ -6,20 +6,102 @@
 #include <yaml-cpp/yaml.h>
 
 #include "subscriber.h"
-#include "../yaml_helper.h"
-#include "../utils.h"
+#include "utils.h"
+#include "uri.h"
+#include "base64.h"
+#include "config.h"
+#include "config_loader.h"
+#include "exception/missing_key_exception.h"
+#include "proxy_decoder/proxy_decoder.h"
+#include "proxy_decoder/proxy_decoder_factory.h"
 
-Subscriber::Subscriber() {
+Subscriber::Subscriber(SubscribeType type) {
     this->regex_collapse = false;
     this->enable_grouping = false;
     this->exclude_amplified_node = false;
     this->use_emoji = false;
+    this->type = type;
 }
 
-Subscriber::~Subscriber() = default;
+void Subscriber::load(std::string_view uri) {
+    switch (this->type) {
+        case SubscribeType::CLASH:
+            try {
+                clash_config_loader(uri);
+            } catch (YAML::ParserException &e) {
+                spdlog::critical("Invalid configuration file. {}", e.what());
+                std::abort();
+            } catch (MissingKeyException &e) {
+                spdlog::critical(
+                        "{}, the uri supplied does not contain proxy section or is not a valid clash configuration file. You may want to change the subscriber type to other",
+                        e.what());
+                std::abort();
+            }
+
+            return;
+        case SubscribeType::OTHER:
+            base64_config_loader(uri);
+            break;
+        case SubscribeType::AUTO:
+            try {
+                spdlog::debug("Try clash config loader");
+                clash_config_loader(uri);
+                spdlog::debug("Clash configuration successfully loaded");
+            } catch (std::exception &e) {
+                spdlog::debug("Fallback to base64 encoded config loader");
+                base64_config_loader(uri);
+            }
+            break;
+    }
+
+    // check loaded proxies
+    if (proxies.size() > 0) {
+        spdlog::info("Total number of proxies loaded {}", proxies.size());
+    } else {
+        spdlog::warn("No proxy loaded, this is probably not what you expected", proxies.size());
+    }
+}
+
+void Subscriber::clash_config_loader(std::string_view uri) {
+    auto yaml = ConfigLoader::instance()->load_yaml(uri);
+    proxies = yaml["proxies"];
+    spdlog::info("Total number of proxies loaded {}", proxies.size());
+}
+
+void Subscriber::base64_config_loader(std::string_view uri) {
+    auto config = ConfigLoader::instance()->load_raw(uri);
+    proxies = decode_config(config);
+}
+
+YAML::Node Subscriber::decode_config(std::string_view config) {
+    auto decoded_config = Base64::decode(config);
+    YAML::Node proxies;
+
+    auto config_list = Utils::split(decoded_config, '\n');
+    for (auto &proxy: config_list) {
+        try {
+            if (!proxy.empty()) {
+                Utils::trim(proxy);
+                // decode config
+                auto uri = Uri::Parse(proxy);
+                auto decoder = ProxyDecoderFactory::make(uri.getSchema());
+                spdlog::debug("select {} decoder for processing the raw data", uri.getSchema());
+
+                auto proxy_config = decoder->decode_config(uri);
+                if (proxy_config.IsDefined()) {
+                    proxies.push_back(proxy_config);
+                }
+            }
+        } catch (CSGRuntimeException &e) {
+            spdlog::warn("Skip adding proxy {}, due to {}", proxy, e.what());
+        }
+    }
+
+    return proxies;
+}
 
 void Subscriber::grouping(size_t group_min_size) {
-    auto netflix = node_vector();
+    auto netflix_group = node_vector();
     auto ungrouped = node_vector();
 
     if (enable_grouping) {
@@ -35,29 +117,29 @@ void Subscriber::grouping(size_t group_min_size) {
             proxy_ptr["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
             auto proxy_name = proxy["name"].as<std::string>();
             auto attribute = parse_name(proxy_name);
+            const auto& [location, id, netflix, amplification] = attribute;
             spdlog::trace("proxy name: {}, id: {}, netflix: {}, amplification: {}",
-                          attribute.location, attribute.id, attribute.netflix, attribute.amplification);
+                          location, id, netflix, amplification);
 
             // write attributes to proxy
             append_attributes(attribute, proxy_ptr);
 
-            if (exclude_amplified_node && attribute.amplification > 1.0) {
-                spdlog::debug("Proxy {} excluded, because the amplification is {}", proxy_name,
-                              attribute.amplification);
+            if (exclude_amplified_node && amplification > 1.0) {
+                spdlog::debug("Proxy {} excluded, because the amplification is {}", proxy_name, amplification);
                 continue;
             }
 
             // initialize vector
-            if (!group_result.count(attribute.location)) {
-                group_result.insert({attribute.location, node_vector()});
+            if (!group_result.count(location)) {
+                group_result.insert({location, node_vector()});
             }
 
             // insert into map
-            group_result.at(attribute.location).push_back(proxy);
+            group_result.at(location).push_back(proxy);
 
             // insert into netflix map
-            if (attribute.netflix) {
-                netflix.push_back(proxy);
+            if (netflix) {
+                netflix_group.push_back(proxy);
             }
         }
 
@@ -93,9 +175,9 @@ void Subscriber::grouping(size_t group_min_size) {
         }
     }
 
-    if (!netflix.empty()) {
-        spdlog::debug("Found {} netflix proxies", netflix.size());
-        group_result.insert({"netflix", netflix});
+    if (!netflix_group.empty()) {
+        spdlog::debug("Found {} netflix proxies", netflix_group.size());
+        group_result.insert({"netflix", netflix_group});
     }
 
     if (!ungrouped.empty()) {
@@ -165,7 +247,7 @@ std::string Subscriber::name2emoji(const std::string &name) {
 
 Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
     std::smatch match;
-    NameAttribute attribute{.location = name, .id = -1, .netflix = false, .amplification = 1.0f};
+    NameAttribute attribute{name, -1, false, 1.0f};
     if (std::regex_match(name, match, name_parser)) {
         spdlog::trace("Name {}, total number of matches are {}", name, match.size());
         auto regex_result = get_regex_result(match);
@@ -181,12 +263,13 @@ Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
 
         // do have an emoji mapper
         if (provider["definition"].IsDefined()) {
-            attribute.location = get_value("location_name", "");
-            if (!attribute.location.empty()) {
-                attribute.id = std::stoi(get_value("position", "-1"));
-                attribute.netflix = !get_value("netflix", "").empty();
+            auto location = get_value("location_name", "");
+            if (!location.empty()) {
+                std::get<0>(attribute) = location;
+                std::get<1>(attribute) = std::stoi(get_value("position", "-1"));
+                std::get<2>(attribute) = !get_value("netflix", "").empty();
                 auto amplification = get_value("amplification", "1.0f");
-                attribute.amplification = std::stof(amplification.empty() ? "1.0f" : amplification);
+                std::get<3>(attribute) = std::stof(amplification.empty() ? "1.0f" : amplification);
             }
         }
     }
@@ -196,10 +279,10 @@ Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
 
 void Subscriber::append_attributes(const Subscriber::NameAttribute &attribute, YAML::Node &node) {
     auto attributes = YAML::Node(YAML::NodeType::Map);
-    attributes["location"] = attribute.location;
-    attributes["id"] = attribute.id;
-    attributes["netflix"] = attribute.netflix;
-    attributes["amplification"] = attribute.amplification;
+    attributes["location"] = std::get<0>(attribute);
+    attributes["id"] = std::get<1>(attribute);
+    attributes["netflix"] = std::get<2>(attribute);
+    attributes["amplification"] = std::get<3>(attribute);
     node["attributes"] = attributes;
 }
 

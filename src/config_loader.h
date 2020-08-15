@@ -6,22 +6,32 @@
 #define CLASHSUBGENERATOR_CONFIG_LOADER_H
 
 #include <string>
+#include <filesystem>
 #include <yaml-cpp/node/node.h>
 
 class Uri;
 
-namespace ConfigLoader {
-    std::string load_raw(std::string_view uri);
+class ConfigLoader {
+public:
+    ~ConfigLoader();
 
-    std::string load_remote_raw(const Uri &uri);
+    static std::shared_ptr<ConfigLoader> instance();
+
+    std::string load_raw(std::string_view uri, bool local_only = false);
+
+    YAML::Node load_yaml(std::string_view uri, bool local_only = false);
+
+private:
+    ConfigLoader();
+
+    std::string cache_file(const Uri &uri);
 
     std::string load_local_raw(std::string_view path);
 
-    YAML::Node load_yaml(std::string_view uri);
-
     YAML::Node load_local_yaml(std::string_view path);
 
-    YAML::Node load_remote_yaml(const Uri &uri);
+private:
+    std::filesystem::path temporary_dir;
 };
 
 

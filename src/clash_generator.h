@@ -8,6 +8,8 @@
 #include <yaml-cpp/node/node.h>
 #include "config.h"
 
+class ConfigLoader;
+
 class ClashSubGenerator {
 public:
     explicit ClashSubGenerator(const Config &_config) : config(_config) {};

@@ -10,7 +10,7 @@ enum class Generator {
 };
 
 enum class SubscribeType {
-    CLASH, OTHER
+    AUTO, CLASH, OTHER
 };
 
 enum class ProviderType {

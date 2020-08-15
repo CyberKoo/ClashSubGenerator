@@ -15,8 +15,7 @@
 #include "config_loader.h"
 #include "rule_extractor.h"
 #include "clash_generator.h"
-#include "subscriber/subscriber.h"
-#include "subscriber/subscriber_factory.h"
+#include "subscriber.h"
 #include "exception/file_system_exception.h"
 #include "exception/missing_key_exception.h"
 #include "exception/invalid_value_exception.h"
@@ -26,18 +25,18 @@ void ClashSubGenerator::run() {
 
     system_config = get_config(config.config_file, "sys_config.yaml");
     auto provider = system_config["Providers"][config.provider_name];
-    auto subscriber = SubscriberFactory::make(config.subscribe_type);
+    auto subscriber = Subscriber(config.subscribe_type);
 
     // provider related
     if (!config.provider_name.empty()) {
         // validate provider
         if (system_config["Providers"][config.provider_name].IsDefined()) {
-            subscriber->set_provider(provider);
-            subscriber->set_grouping(config.enable_grouping);
-            subscriber->set_emoji_map(create_emoji_map(config.provider_name));
-            subscriber->set_name_parser(provider["regex"].as<std::string>());
+            subscriber.set_provider(provider);
+            subscriber.set_grouping(config.enable_grouping);
+            subscriber.set_emoji_map(create_emoji_map(config.provider_name));
+            subscriber.set_name_parser(provider["regex"].as<std::string>());
             if (provider["regex_collapse"].IsDefined()) {
-                subscriber->set_regex_collapse(provider["regex_collapse"].as<bool>());
+                subscriber.set_regex_collapse(provider["regex_collapse"].as<bool>());
             }
             spdlog::info("Provider is set to {}", config.provider_name);
         } else {
@@ -52,17 +51,17 @@ void ClashSubGenerator::run() {
         if (config.use_emoji) {
             spdlog::warn("Provider name is not set, name2emoji may not work properly.");
         }
-        subscriber->set_emoji_map(system_config["Global"]["location2emoji"]);
+        subscriber.set_emoji_map(system_config["Global"]["location2emoji"]);
     }
 
     // load yaml file from remote server
-    subscriber->load(config.subscribe_url);
+    subscriber.load(config.subscribe_url);
     // set flag and parameters
-    subscriber->set_use_emoji(config.use_emoji);
-    subscriber->set_exclude_amplified_node(config.exclude_amplified_proxy);
+    subscriber.set_use_emoji(config.use_emoji);
+    subscriber.set_exclude_amplified_node(config.exclude_amplified_proxy);
     // perform grouping
-    subscriber->grouping(config.group_min_size);
-    auto proxies = subscriber->get();
+    subscriber.grouping(config.group_min_size);
+    auto proxies = subscriber.get();
     if (config.generator == Generator::PROVIDER) {
         proxies = generate_providers(proxies);
     }
@@ -98,14 +97,13 @@ YAML::Node ClashSubGenerator::create_emoji_map(std::string_view provider_name) {
 YAML::Node ClashSubGenerator::get_config(std::string_view filename, std::string_view repository_filename) {
     auto path = get_file_full_path(filename);
     if (FileSystem::exists(path)) {
-        return ConfigLoader::load_local_yaml(path);
+        return ConfigLoader::instance()->load_yaml(fmt::format("file://{}", path), true);
     } else {
         if (!config.local_only) {
             spdlog::warn("Unable to load local file: {}, download from repository", repository_filename);
-            auto uri = Uri::Parse(fmt::format("{}/{}", config.repository_url, repository_filename));
-            return ConfigLoader::load_remote_yaml(uri);
+            return ConfigLoader::instance()->load_yaml(fmt::format("{}/{}", config.repository_url, repository_filename));
         } else {
-            spdlog::error("Local only enabled, not allowed to fetch configuration from repository");
+            spdlog::error("Local only enabled, fetch configuration from repository is not allowed");
             throw FileSystemException(fmt::format("file {} doesn't exist", filename));
         }
     }
@@ -204,7 +202,7 @@ YAML::Node ClashSubGenerator::generate_providers(const YAML::Node &node) {
         FileSystem::mkdir(directory_name);
     } else {
         spdlog::debug("clearing directory {}", directory_name);
-        FileSystem::clear_directory(directory_name);
+        FileSystem::clear_directory<std::string_view>(directory_name);
     }
 
     auto master_config = YAML::Node();
