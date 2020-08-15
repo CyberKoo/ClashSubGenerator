@@ -88,6 +88,9 @@ int main(int argc, char *argv[]) {
     } catch (CSGRuntimeException &e) {
         SPDLOG_CRITICAL("{}", e.what());
         std::abort();
+    } catch (std::exception &e) {
+        SPDLOG_CRITICAL("Unexpected exception: {}", e.what());
+        std::abort();
     }
 
     return 0;

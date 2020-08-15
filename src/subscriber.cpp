@@ -26,19 +26,8 @@ Subscriber::Subscriber(SubscribeType type) {
 void Subscriber::load(std::string_view uri) {
     switch (this->type) {
         case SubscribeType::CLASH:
-            try {
-                clash_config_loader(uri);
-            } catch (YAML::ParserException &e) {
-                SPDLOG_CRITICAL("Invalid configuration file. {}", e.what());
-                std::abort();
-            } catch (MissingKeyException &e) {
-                SPDLOG_CRITICAL(
-                        "{}, the uri supplied does not contain proxy section or is not a valid clash configuration file. You may want to change the subscriber type to other",
-                        e.what());
-                std::abort();
-            }
-
-            return;
+            clash_config_loader(uri);
+            break;
         case SubscribeType::OTHER:
             base64_config_loader(uri);
             break;
@@ -65,7 +54,6 @@ void Subscriber::load(std::string_view uri) {
 void Subscriber::clash_config_loader(std::string_view uri) {
     auto yaml = ConfigLoader::instance()->load_yaml(uri);
     proxies = yaml["proxies"];
-    SPDLOG_INFO("Total number of proxies loaded {}", proxies.size());
 }
 
 void Subscriber::base64_config_loader(std::string_view uri) {

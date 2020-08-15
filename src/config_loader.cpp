@@ -12,7 +12,6 @@
 #include "utils.h"
 #include "httpclient.h"
 #include "filesystem.h"
-#include "exception/file_system_exception.h"
 
 std::shared_ptr<ConfigLoader> ConfigLoader::instance() {
     static const std::shared_ptr<ConfigLoader> instance{new ConfigLoader{}};
@@ -39,7 +38,7 @@ std::string ConfigLoader::load_raw(std::string_view uri, bool local_only) {
         SPDLOG_DEBUG("Load local file {}", uri);
         return load_local_raw(uri_result.getPath());
     } else {
-        return load_local_raw(cache_file(uri_result));
+        return load_local_raw(cache_loader(uri_result));
     }
 }
 
@@ -51,16 +50,18 @@ YAML::Node ConfigLoader::load_yaml(std::string_view uri, bool local_only) {
         SPDLOG_DEBUG("load local yaml file {}", uri_result.getBody());
         return load_local_yaml(uri_result.getBody());
     } else {
-        return load_local_yaml(cache_file(uri_result));
+        return load_local_yaml(cache_loader(uri_result));
     }
 }
 
 std::string ConfigLoader::load_local_raw(std::string_view path) {
-    if (FileSystem::exists(path)) {
-        std::fstream fin(path.data());
-        auto content = std::string((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
-        fin.close();
-        return content;
+    try {
+        if (FileSystem::exists(path)) {
+            std::fstream fin(path.data());
+            return std::string((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+        }
+    } catch (std::exception &e) {
+        throw FileSystemException(fmt::format("Load file {} filed, error: {}", path, e.what()));
     }
 
     throw FileSystemException(fmt::format("File {} doesn't exist", path));
@@ -74,13 +75,13 @@ YAML::Node ConfigLoader::load_local_yaml(std::string_view path) {
     throw FileSystemException(fmt::format("File {} doesn't exist", path));
 }
 
-std::string ConfigLoader::cache_file(const Uri &uri) {
-    auto sha1_hash = Hash::sha1(uri.getRawUri());
-    auto temp_path = temporary_dir / sha1_hash;
-    if (!FileSystem::exists(temp_path)) {
+std::string ConfigLoader::cache_loader(const Uri &uri) {
+    const auto sha1_hash = Hash::sha1(uri.getRawUri());
+    const auto cached_file = temporary_dir / sha1_hash;
+    if (!FileSystem::exists(cached_file)) {
         // download and cache
         auto file = HttpClient::get(uri);
-        std::ofstream fout(temp_path);
+        std::ofstream fout(cached_file);
         fout << file;
         fout.close();
         SPDLOG_DEBUG("Uri {} downloaded and cached", uri.getRawUri());
@@ -89,5 +90,5 @@ std::string ConfigLoader::cache_file(const Uri &uri) {
     }
 
     // return local address
-    return "file://" / temp_path;
+    return "file://" / cached_file;
 }

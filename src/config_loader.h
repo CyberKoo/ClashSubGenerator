@@ -24,7 +24,7 @@ public:
 private:
     ConfigLoader();
 
-    std::string cache_file(const Uri &uri);
+    std::string cache_loader(const Uri &uri);
 
     std::string load_local_raw(std::string_view path);
 
