@@ -6,6 +6,7 @@
 #define CLASHSUBGENERATOR_FILESYSTEM_H
 
 #include <string>
+#include <fstream>
 #include <filesystem>
 #include "exception/file_system_exception.h"
 
@@ -53,6 +54,36 @@ public:
         error_check(ec, "delete directory");
 
         return result;
+    }
+
+    template<class T>
+    static bool write(std::string_view file_path, T content) {
+        std::ofstream fout(file_path.data());
+        if (fout.is_open()) {
+            fout << content;
+            fout.close();
+        } else {
+            throw FileSystemException(fmt::format("unable to open file {}", file_path));
+        }
+
+        return true;
+    }
+
+    template<class T>
+    static bool write(std::string_view file_path, std::vector<std::string> &headers, T content) {
+        std::ofstream fout(file_path.data());
+        if (fout.is_open()) {
+            // write headers
+            for(const auto &header: headers){
+                fout << header << std::endl;
+            }
+            fout << content;
+            fout.close();
+        } else {
+            throw FileSystemException(fmt::format("unable to open file {}", file_path));
+        }
+
+        return true;
     }
 };
 

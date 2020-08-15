@@ -13,25 +13,22 @@ class Uri;
 
 class ConfigLoader {
 public:
-    ~ConfigLoader();
+    ~ConfigLoader() = default;
 
     static std::shared_ptr<ConfigLoader> instance();
 
-    std::string load_raw(std::string_view uri, bool local_only = false);
+    std::string load_raw(std::string_view uri, bool local_only = false, bool use_cache = false);
 
-    YAML::Node load_yaml(std::string_view uri, bool local_only = false);
+    YAML::Node load_yaml(std::string_view uri, bool local_only = false, bool use_cache = false);
+
+    void destroy_cache();
+private:
+    ConfigLoader() = default;
+
+    std::string cache_loader(const Uri &uri, bool use_cache);
 
 private:
-    ConfigLoader();
-
-    std::string cache_loader(const Uri &uri);
-
-    std::string load_local_raw(std::string_view path);
-
-    YAML::Node load_local_yaml(std::string_view path);
-
-private:
-    std::filesystem::path temporary_dir;
+    std::map<std::string, std::string> cache;
 };
 
 

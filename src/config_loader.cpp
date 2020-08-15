@@ -9,7 +9,6 @@
 #include "config_loader.h"
 #include "uri.h"
 #include "hash.h"
-#include "utils.h"
 #include "httpclient.h"
 #include "filesystem.h"
 
@@ -18,77 +17,67 @@ std::shared_ptr<ConfigLoader> ConfigLoader::instance() {
     return instance;
 }
 
-ConfigLoader::ConfigLoader() {
-    auto instance_id = Utils::get_random_string(15);
-    this->temporary_dir = FileSystem::temp_path(instance_id);
-    FileSystem::mkdir(this->temporary_dir);
-    SPDLOG_DEBUG("Create temporary directory {}", this->temporary_dir.string());
-}
-
-ConfigLoader::~ConfigLoader() {
-    FileSystem::rmdir(this->temporary_dir);
-    SPDLOG_DEBUG("Clear temporary directory {}", this->temporary_dir.string());
-}
-
-std::string ConfigLoader::load_raw(std::string_view uri, bool local_only) {
+std::string ConfigLoader::load_raw(std::string_view uri, bool local_only, bool use_cache) {
     auto uri_result = Uri::Parse(uri);
 
     // add support of protocol file://
     if (uri_result.getSchema() == "file" || local_only) {
         SPDLOG_DEBUG("Load local file {}", uri);
-        return load_local_raw(uri_result.getPath());
+        auto path = uri_result.getPath();
+        try {
+            if (FileSystem::exists(path)) {
+                std::fstream fin(path.data());
+                return std::string((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+            }
+        } catch (std::exception &e) {
+            throw FileSystemException(fmt::format("Load file {} filed, error: {}", path, e.what()));
+        }
+
+        throw FileSystemException(fmt::format("File {} doesn't exist", path));
     } else {
-        return load_local_raw(cache_loader(uri_result));
+        return cache_loader(uri_result, use_cache);
     }
 }
 
-YAML::Node ConfigLoader::load_yaml(std::string_view uri, bool local_only) {
+YAML::Node ConfigLoader::load_yaml(std::string_view uri, bool local_only, bool use_cache) {
     auto uri_result = Uri::Parse(uri);
 
     // add support of protocol file://
     if (uri_result.getSchema() == "file" || local_only) {
         SPDLOG_DEBUG("load local yaml file {}", uri_result.getBody());
-        return load_local_yaml(uri_result.getBody());
-    } else {
-        return load_local_yaml(cache_loader(uri_result));
-    }
-}
 
-std::string ConfigLoader::load_local_raw(std::string_view path) {
-    try {
+        auto path = uri_result.getBody();
         if (FileSystem::exists(path)) {
-            std::fstream fin(path.data());
-            return std::string((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+            return YAML::LoadFile(path.data());
         }
-    } catch (std::exception &e) {
-        throw FileSystemException(fmt::format("Load file {} filed, error: {}", path, e.what()));
-    }
 
-    throw FileSystemException(fmt::format("File {} doesn't exist", path));
-}
-
-YAML::Node ConfigLoader::load_local_yaml(std::string_view path) {
-    if (FileSystem::exists(path)) {
-        return YAML::LoadFile(path.data());
-    }
-
-    throw FileSystemException(fmt::format("File {} doesn't exist", path));
-}
-
-std::string ConfigLoader::cache_loader(const Uri &uri) {
-    const auto sha1_hash = Hash::sha1(uri.getRawUri());
-    const auto cached_file = temporary_dir / sha1_hash;
-    if (!FileSystem::exists(cached_file)) {
-        // download and cache
-        auto file = HttpClient::get(uri);
-        std::ofstream fout(cached_file);
-        fout << file;
-        fout.close();
-        SPDLOG_DEBUG("Uri {} downloaded and cached", uri.getRawUri());
+        throw FileSystemException(fmt::format("File {} doesn't exist", path));
     } else {
-        SPDLOG_DEBUG("Uri {} loaded from cached", uri.getRawUri());
+        return YAML::Load(cache_loader(uri_result, use_cache));
     }
+}
 
-    // return local address
-    return "file://" / cached_file;
+std::string ConfigLoader::cache_loader(const Uri &uri, bool use_cache) {
+    if (use_cache) {
+        const auto sha1_hash = Hash::sha1(uri.getRawUri());
+        if (cache.find(sha1_hash) == cache.end()) {
+            // download and cache
+            auto content = HttpClient::get(uri);
+            cache.emplace(sha1_hash, content);
+            SPDLOG_DEBUG("Uri {} downloaded and cached", uri.getRawUri());
+
+            return content;
+        } else {
+            SPDLOG_DEBUG("Uri {} loaded from cache", uri.getRawUri());
+            return cache[sha1_hash];
+        }
+    } else {
+        return HttpClient::get(uri);
+    }
+}
+
+void ConfigLoader::destroy_cache() {
+    auto size = cache.size();
+    cache.clear();
+    SPDLOG_DEBUG("{} cached data deleted", size);
 }

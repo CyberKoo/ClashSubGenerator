@@ -26,7 +26,13 @@ Subscriber::Subscriber(SubscribeType type) {
 void Subscriber::load(std::string_view uri) {
     switch (this->type) {
         case SubscribeType::CLASH:
-            clash_config_loader(uri);
+            try {
+                clash_config_loader(uri);
+            } catch (std::exception &e) {
+                SPDLOG_CRITICAL("Unable to load clash configuration, possibly due to incorrect file given. Error: {}",
+                                e.what());
+                std::abort();
+            }
             break;
         case SubscribeType::OTHER:
             base64_config_loader(uri);
@@ -39,6 +45,7 @@ void Subscriber::load(std::string_view uri) {
             } catch (std::exception &e) {
                 SPDLOG_DEBUG("Fallback to base64 encoded config loader");
                 base64_config_loader(uri);
+                ConfigLoader::instance()->destroy_cache();
             }
             break;
     }
@@ -52,12 +59,12 @@ void Subscriber::load(std::string_view uri) {
 }
 
 void Subscriber::clash_config_loader(std::string_view uri) {
-    auto yaml = ConfigLoader::instance()->load_yaml(uri);
+    auto yaml = ConfigLoader::instance()->load_yaml(uri, false, true);
     proxies = yaml["proxies"];
 }
 
 void Subscriber::base64_config_loader(std::string_view uri) {
-    auto config = ConfigLoader::instance()->load_raw(uri);
+    auto config = ConfigLoader::instance()->load_raw(uri, false, true);
     proxies = decode_config(config);
 }
 
@@ -65,6 +72,7 @@ YAML::Node Subscriber::decode_config(std::string_view config) {
     auto decoded_config = Base64::decode(config);
     YAML::Node proxies;
 
+    auto decoded_counter = std::map<std::string, unsigned>();
     auto config_list = Utils::split(decoded_config, '\n');
     for (auto &proxy: config_list) {
         try {
@@ -73,7 +81,9 @@ YAML::Node Subscriber::decode_config(std::string_view config) {
                 // decode config
                 auto uri = Uri::Parse(proxy);
                 auto decoder = ProxyDecoderFactory::make(uri.getSchema());
-                SPDLOG_DEBUG("select {} decoder for processing the raw data", uri.getSchema());
+                decoded_counter.try_emplace(uri.getSchema().data(), 0);
+                SPDLOG_TRACE("Select {} decoder for {}", uri.getSchema(), uri.getRawUri());
+                ++decoded_counter[uri.getSchema().data()];
 
                 auto proxy_config = decoder->decode_config(uri);
                 if (proxy_config.IsDefined()) {
@@ -83,6 +93,16 @@ YAML::Node Subscriber::decode_config(std::string_view config) {
         } catch (CSGRuntimeException &e) {
             SPDLOG_WARN("Skip adding proxy {}, due to {}", proxy, e.what());
         }
+    }
+
+    // print message for composite list
+    if (decoded_counter.size() > 1) {
+        std::string message = "Decoded proxies";
+        for (const auto &[name, counter]: decoded_counter) {
+            message += fmt::format(", {}: {}", name, counter);
+        }
+
+        SPDLOG_INFO(message);
     }
 
     return proxies;
@@ -105,9 +125,9 @@ void Subscriber::grouping(size_t group_min_size) {
             proxy_ptr["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
             auto proxy_name = proxy["name"].as<std::string>();
             auto attribute = parse_name(proxy_name);
-            const auto& [location, id, netflix, amplification] = attribute;
+            const auto&[location, id, netflix, amplification] = attribute;
             SPDLOG_TRACE("proxy name: {}, id: {}, netflix: {}, amplification: {}",
-                          location, id, netflix, amplification);
+                         location, id, netflix, amplification);
 
             // write attributes to proxy
             append_attributes(attribute, proxy_ptr);
