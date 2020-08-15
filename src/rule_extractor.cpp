@@ -23,13 +23,13 @@ void RuleExtractor::load(std::string_view uri) {
     auto yaml_rules = YAML::Load(response);
 
     if (!yaml_rules.IsDefined() || yaml_rules.IsScalar()) {
-        spdlog::debug("Loaded content: {}", response);
+        SPDLOG_DEBUG("Loaded content: {}", response);
         throw InvalidYamlException("Invalid Yaml file loaded");
     }
 
     rules = yaml_rules["rules"];
 
     if (rules.size() == 0) {
-        spdlog::warn("Empty rule Loaded");
+        SPDLOG_WARN("Empty rule Loaded");
     }
 }

@@ -23,12 +23,12 @@ ConfigLoader::ConfigLoader() {
     auto instance_id = Utils::get_random_string(15);
     this->temporary_dir = FileSystem::temp_path(instance_id);
     FileSystem::mkdir(this->temporary_dir);
-    spdlog::debug("Create temporary directory {}", this->temporary_dir.string());
+    SPDLOG_DEBUG("Create temporary directory {}", this->temporary_dir.string());
 }
 
 ConfigLoader::~ConfigLoader() {
     FileSystem::rmdir(this->temporary_dir);
-    spdlog::debug("Clear temporary directory {}", this->temporary_dir.string());
+    SPDLOG_DEBUG("Clear temporary directory {}", this->temporary_dir.string());
 }
 
 std::string ConfigLoader::load_raw(std::string_view uri, bool local_only) {
@@ -36,7 +36,7 @@ std::string ConfigLoader::load_raw(std::string_view uri, bool local_only) {
 
     // add support of protocol file://
     if (uri_result.getSchema() == "file" || local_only) {
-        spdlog::debug("Load local file {}", uri);
+        SPDLOG_DEBUG("Load local file {}", uri);
         return load_local_raw(uri_result.getPath());
     } else {
         return load_local_raw(cache_file(uri_result));
@@ -48,7 +48,7 @@ YAML::Node ConfigLoader::load_yaml(std::string_view uri, bool local_only) {
 
     // add support of protocol file://
     if (uri_result.getSchema() == "file" || local_only) {
-        spdlog::debug("load local yaml file {}", uri_result.getBody());
+        SPDLOG_DEBUG("load local yaml file {}", uri_result.getBody());
         return load_local_yaml(uri_result.getBody());
     } else {
         return load_local_yaml(cache_file(uri_result));
@@ -83,9 +83,9 @@ std::string ConfigLoader::cache_file(const Uri &uri) {
         std::ofstream fout(temp_path);
         fout << file;
         fout.close();
-        spdlog::debug("Uri {} downloaded and cached", uri.getRawUri());
+        SPDLOG_DEBUG("Uri {} downloaded and cached", uri.getRawUri());
     } else {
-        spdlog::debug("Uri {} loaded from cached", uri.getRawUri());
+        SPDLOG_DEBUG("Uri {} loaded from cached", uri.getRawUri());
     }
 
     // return local address

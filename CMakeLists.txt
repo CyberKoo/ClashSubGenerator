@@ -69,7 +69,10 @@ file(GLOB_RECURSE Exceptions "src/exception/*.h")
 file(GLOB_RECURSE ProxyDecoderHeaders "src/proxy_decoder/*.h")
 file(GLOB_RECURSE ProxyDecoderSources "src/proxy_decoder/*.cpp")
 
-#
+# define spdlog logging level
+add_compile_definitions(SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG)
+
+# source code
 set(ProxyDecoder ${ProxyDecoderHeaders} ${ProxyDecoderSources})
 set(Subscriber src/subscriber.cpp src/subscriber.cpp)
 set(utils src/utils.cpp src/utils.h)

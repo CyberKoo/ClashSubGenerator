@@ -29,10 +29,10 @@ void Subscriber::load(std::string_view uri) {
             try {
                 clash_config_loader(uri);
             } catch (YAML::ParserException &e) {
-                spdlog::critical("Invalid configuration file. {}", e.what());
+                SPDLOG_CRITICAL("Invalid configuration file. {}", e.what());
                 std::abort();
             } catch (MissingKeyException &e) {
-                spdlog::critical(
+                SPDLOG_CRITICAL(
                         "{}, the uri supplied does not contain proxy section or is not a valid clash configuration file. You may want to change the subscriber type to other",
                         e.what());
                 std::abort();
@@ -44,11 +44,11 @@ void Subscriber::load(std::string_view uri) {
             break;
         case SubscribeType::AUTO:
             try {
-                spdlog::debug("Try clash config loader");
+                SPDLOG_DEBUG("Try clash config loader");
                 clash_config_loader(uri);
-                spdlog::debug("Clash configuration successfully loaded");
+                SPDLOG_DEBUG("Clash configuration successfully loaded");
             } catch (std::exception &e) {
-                spdlog::debug("Fallback to base64 encoded config loader");
+                SPDLOG_DEBUG("Fallback to base64 encoded config loader");
                 base64_config_loader(uri);
             }
             break;
@@ -56,16 +56,16 @@ void Subscriber::load(std::string_view uri) {
 
     // check loaded proxies
     if (proxies.size() > 0) {
-        spdlog::info("Total number of proxies loaded {}", proxies.size());
+        SPDLOG_INFO("Total number of proxies loaded {}", proxies.size());
     } else {
-        spdlog::warn("No proxy loaded, this is probably not what you expected", proxies.size());
+        SPDLOG_WARN("No proxy loaded, this is probably not what you expected", proxies.size());
     }
 }
 
 void Subscriber::clash_config_loader(std::string_view uri) {
     auto yaml = ConfigLoader::instance()->load_yaml(uri);
     proxies = yaml["proxies"];
-    spdlog::info("Total number of proxies loaded {}", proxies.size());
+    SPDLOG_INFO("Total number of proxies loaded {}", proxies.size());
 }
 
 void Subscriber::base64_config_loader(std::string_view uri) {
@@ -85,7 +85,7 @@ YAML::Node Subscriber::decode_config(std::string_view config) {
                 // decode config
                 auto uri = Uri::Parse(proxy);
                 auto decoder = ProxyDecoderFactory::make(uri.getSchema());
-                spdlog::debug("select {} decoder for processing the raw data", uri.getSchema());
+                SPDLOG_DEBUG("select {} decoder for processing the raw data", uri.getSchema());
 
                 auto proxy_config = decoder->decode_config(uri);
                 if (proxy_config.IsDefined()) {
@@ -93,7 +93,7 @@ YAML::Node Subscriber::decode_config(std::string_view config) {
                 }
             }
         } catch (CSGRuntimeException &e) {
-            spdlog::warn("Skip adding proxy {}, due to {}", proxy, e.what());
+            SPDLOG_WARN("Skip adding proxy {}, due to {}", proxy, e.what());
         }
     }
 
@@ -105,7 +105,7 @@ void Subscriber::grouping(size_t group_min_size) {
     auto ungrouped = node_vector();
 
     if (enable_grouping) {
-        spdlog::info("Grouping proxies by name, minimum size for a group is {}", group_min_size);
+        SPDLOG_INFO("Grouping proxies by name, minimum size for a group is {}", group_min_size);
 
         // awaiting delete
         std::vector<std::string> remove_list;
@@ -118,14 +118,14 @@ void Subscriber::grouping(size_t group_min_size) {
             auto proxy_name = proxy["name"].as<std::string>();
             auto attribute = parse_name(proxy_name);
             const auto& [location, id, netflix, amplification] = attribute;
-            spdlog::trace("proxy name: {}, id: {}, netflix: {}, amplification: {}",
+            SPDLOG_TRACE("proxy name: {}, id: {}, netflix: {}, amplification: {}",
                           location, id, netflix, amplification);
 
             // write attributes to proxy
             append_attributes(attribute, proxy_ptr);
 
             if (exclude_amplified_node && amplification > 1.0) {
-                spdlog::debug("Proxy {} excluded, because the amplification is {}", proxy_name, amplification);
+                SPDLOG_DEBUG("Proxy {} excluded, because the amplification is {}", proxy_name, amplification);
                 continue;
             }
 
@@ -148,7 +148,7 @@ void Subscriber::grouping(size_t group_min_size) {
             auto source_name = merge_pair.first.as<std::string>();
             auto target_name = merge_pair.second.as<std::string>();
             if (group_result.count(source_name) && group_result.count(target_name)) {
-                spdlog::debug("Move all proxies in group {} to {}", source_name, target_name);
+                SPDLOG_DEBUG("Move all proxies in group {} to {}", source_name, target_name);
                 auto &source_vec = group_result.at(source_name);
                 auto &target_vec = group_result.at(target_name);
 
@@ -167,7 +167,7 @@ void Subscriber::grouping(size_t group_min_size) {
         }
         remove_groups(remove_list);
     } else {
-        spdlog::info("Proxy grouping is disabled");
+        SPDLOG_INFO("Proxy grouping is disabled");
         for (auto proxy : proxies) {
             // trim proxy name
             proxy["name"] = Utils::trim_copy(proxy["name"].as<std::string>());
@@ -176,12 +176,12 @@ void Subscriber::grouping(size_t group_min_size) {
     }
 
     if (!netflix_group.empty()) {
-        spdlog::debug("Found {} netflix proxies", netflix_group.size());
+        SPDLOG_DEBUG("Found {} netflix proxies", netflix_group.size());
         group_result.insert({"netflix", netflix_group});
     }
 
     if (!ungrouped.empty()) {
-        spdlog::debug("Found {} ungrouped proxies", ungrouped.size());
+        SPDLOG_DEBUG("Found {} ungrouped proxies", ungrouped.size());
         group_result.insert({"Ungrouped", ungrouped});
     }
 }
@@ -197,7 +197,7 @@ YAML::Node Subscriber::get() {
         for (const auto &[name, nodes]: group_result) {
             auto group_name = fmt::format("{}-{}", prefix, name);
             node["group_name"].push_back(group_name);
-            spdlog::debug("Processing group {}", group_name);
+            SPDLOG_DEBUG("Processing group {}", group_name);
             auto current_group = YAML::Node();
             current_group["name"] = group_name;
             current_group["proxies"] = YAML::Node(YAML::NodeType::Sequence);
@@ -211,7 +211,7 @@ YAML::Node Subscriber::get() {
                 if (proxy.IsDefined() && proxy.IsMap()) {
                     auto proxy_ptr = YAML::Node(proxy);
                     auto proxy_name = proxy["name"];
-                    spdlog::trace("Add proxy {} to group {}", proxy_name.as<std::string>(), group_name);
+                    SPDLOG_TRACE("Add proxy {} to group {}", proxy_name.as<std::string>(), group_name);
 
                     // only update name when grouping is enabled
                     if (proxy["attributes"].IsDefined()) {
@@ -240,7 +240,7 @@ std::string Subscriber::name2emoji(const std::string &name) {
         return emoji_map[name].as<std::string>();
     }
 
-    spdlog::info("No emoji defined for {}", name);
+    SPDLOG_INFO("No emoji defined for {}", name);
 
     return name;
 }
@@ -249,7 +249,7 @@ Subscriber::NameAttribute Subscriber::parse_name(const std::string &name) {
     std::smatch match;
     NameAttribute attribute{name, -1, false, 1.0f};
     if (std::regex_match(name, match, name_parser)) {
-        spdlog::trace("Name {}, total number of matches are {}", name, match.size());
+        SPDLOG_TRACE("Name {}, total number of matches are {}", name, match.size());
         auto regex_result = get_regex_result(match);
 
         const auto get_value = [&](const std::string &key_name, const std::string &default_value) {
@@ -321,7 +321,7 @@ std::function<std::string(const YAML::Node &)> Subscriber::get_name_generator() 
 void Subscriber::remove_groups(std::vector<std::string> &remove_list) {
     for (const auto &name: remove_list) {
         group_result.erase(name);
-        spdlog::debug("Remove group {}", name);
+        SPDLOG_DEBUG("Remove group {}", name);
     }
     remove_list.clear();
 }

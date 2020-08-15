@@ -73,11 +73,11 @@ int main(int argc, char *argv[]) {
     CLI11_PARSE(cliApp, argc, argv);
 
     // logging
-    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S %z] [%^%l%$] %v");
+    spdlog::set_pattern("[%D %T] [%^%l%$] [%s(%!):%#] %v");
 
     if (config.debug) {
         spdlog::set_level(spdlog::level::debug);
-        spdlog::debug("Verbose mode enabled");
+        SPDLOG_DEBUG("Verbose mode enabled");
     } else {
         spdlog::set_level(spdlog::level::info);
     }
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     try {
         generator.run();
     } catch (CSGRuntimeException &e) {
-        spdlog::critical("{}", e.what());
+        SPDLOG_CRITICAL("{}", e.what());
         std::abort();
     }
 

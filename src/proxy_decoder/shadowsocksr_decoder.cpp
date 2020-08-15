@@ -12,11 +12,11 @@
 #include "../exception/unsupported_configuration.h"
 
 YAML::Node ShadowsocksRDecoder::decode_config(const Uri &uri) {
-    spdlog::trace("using ssr decoder to decode config {}", uri.getHost());
+    SPDLOG_TRACE("using ssr decoder to decode config {}", uri.getHost());
 
     // decoding
     auto decoded_config = decode_base64(uri.getHost());
-    spdlog::trace("decoded config {}", decoded_config);
+    SPDLOG_TRACE("decoded config {}", decoded_config);
 
     // parsing
     auto ssr = Utils::split(decoded_config, '/');
@@ -60,10 +60,10 @@ std::map<std::string, std::string> ShadowsocksRDecoder::get_ssr_parameters(std::
         auto map_content = Utils::split(pair, '=');
         if (map_content.size() == 2) {
             auto value = decode_base64(map_content[1]);
-            spdlog::trace("add parameter {} = {} to parameter map", map_content[0], value);
+            SPDLOG_TRACE("add parameter {} = {} to parameter map", map_content[0], value);
             parameters.emplace(map_content[0], value);
         } else {
-            spdlog::debug("discard empty parameter {}", map_content[0]);
+            SPDLOG_DEBUG("discard empty parameter {}", map_content[0]);
         }
     }
 

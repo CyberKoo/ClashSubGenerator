@@ -40,10 +40,10 @@ std::map<std::string, std::string> TrojanDecoder::get_parameters(std::string_vie
     for (const auto &pair : parameter_pair) {
         auto map_content = Utils::split(pair, '=');
         if (map_content.size() == 2) {
-            spdlog::trace("add parameter {} = {} to parameter map", map_content[0], map_content[1]);
+            SPDLOG_TRACE("add parameter {} = {} to parameter map", map_content[0], map_content[1]);
             parameters.emplace(map_content[0], map_content[1]);
         } else {
-            spdlog::debug("discard empty parameter {}", map_content[0]);
+            SPDLOG_DEBUG("discard empty parameter {}", map_content[0]);
         }
     }
 

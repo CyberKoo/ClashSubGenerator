@@ -16,12 +16,11 @@
 #include "rule_extractor.h"
 #include "clash_generator.h"
 #include "subscriber.h"
-#include "exception/file_system_exception.h"
 #include "exception/missing_key_exception.h"
 #include "exception/invalid_value_exception.h"
 
 void ClashSubGenerator::run() {
-    spdlog::info("Configuration format: {}", config.generator == Generator::PROVIDER ? "Provider" : "Config");
+    SPDLOG_INFO("Configuration format: {}", config.generator == Generator::PROVIDER ? "Provider" : "Config");
 
     system_config = get_config(config.config_file, "sys_config.yaml");
     auto provider = system_config["Providers"][config.provider_name];
@@ -38,18 +37,18 @@ void ClashSubGenerator::run() {
             if (provider["regex_collapse"].IsDefined()) {
                 subscriber.set_regex_collapse(provider["regex_collapse"].as<bool>());
             }
-            spdlog::info("Provider is set to {}", config.provider_name);
+            SPDLOG_INFO("Provider is set to {}", config.provider_name);
         } else {
-            spdlog::warn("Provider {} is not defined in the config file, name2emoji may not work properly.",
+            SPDLOG_WARN("Provider {} is not defined in the config file, name2emoji may not work properly.",
                          config.provider_name);
             if (config.enable_grouping) {
-                spdlog::warn("Grouping is disabled due to no valid provider provided.");
+                SPDLOG_WARN("Grouping is disabled due to no valid provider provided.");
             }
         }
     } else {
         // only display warning when name to emoji is enabled
         if (config.use_emoji) {
-            spdlog::warn("Provider name is not set, name2emoji may not work properly.");
+            SPDLOG_WARN("Provider name is not set, name2emoji may not work properly.");
         }
         subscriber.set_emoji_map(system_config["Global"]["location2emoji"]);
     }
@@ -86,7 +85,7 @@ YAML::Node ClashSubGenerator::create_emoji_map(std::string_view provider_name) {
     if (provider["location2emoji"].IsDefined() && provider["location2emoji"].size() != 0) {
         for (const auto &local_emoji : provider["location2emoji"]) {
             auto emoji_name = local_emoji.first.as<std::string>();
-            spdlog::trace("add {} to emoji list", emoji_name);
+            SPDLOG_TRACE("add {} to emoji list", emoji_name);
             emoji[emoji_name] = local_emoji.second.as<std::string>();
         }
     }
@@ -100,7 +99,7 @@ YAML::Node ClashSubGenerator::get_config(std::string_view filename, std::string_
         return ConfigLoader::instance()->load_yaml(fmt::format("file://{}", path), true);
     } else {
         if (!config.local_only) {
-            spdlog::warn("Unable to load local file: {}, download from repository", repository_filename);
+            SPDLOG_WARN("Unable to load local file: {}, download from repository", repository_filename);
             return ConfigLoader::instance()->load_yaml(fmt::format("{}/{}", config.repository_url, repository_filename));
         } else {
             spdlog::error("Local only enabled, fetch configuration from repository is not allowed");
@@ -110,19 +109,19 @@ YAML::Node ClashSubGenerator::get_config(std::string_view filename, std::string_
 }
 
 YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const YAML::Node &preferred_group) {
-    spdlog::info("Start generating Clash configuration file");
+    SPDLOG_INFO("Start generating Clash configuration file");
     auto yaml_template = get_config(config.template_file, "template.yaml");
 
     auto group_name = node["group_name"];
     if (preferred_group.IsDefined() && preferred_group.IsScalar()) {
         auto p_group_name = preferred_group.as<std::string>();
-        spdlog::debug("Preferred group is set to {}, trying to find and move it to the front", p_group_name);
+        SPDLOG_DEBUG("Preferred group is set to {}, trying to find and move it to the front", p_group_name);
         auto node_name_list = node["group_name"].as<std::vector<std::string>>();
 
         for (auto &name: node_name_list) {
             if (name.find(p_group_name) != std::string::npos) {
                 std::swap(node_name_list.front(), name);
-                spdlog::debug("Group {} is moved to the front", p_group_name);
+                SPDLOG_DEBUG("Group {} is moved to the front", p_group_name);
                 break;
             }
         }
@@ -147,7 +146,7 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
     for (auto group : yaml_template["proxy-groups"]) {
         auto name = group["name"].as<std::string>();
         if (name == anchor) {
-            spdlog::debug("Replace anchor with generated group {}", anchor_group_name);
+            SPDLOG_DEBUG("Replace anchor with generated group {}", anchor_group_name);
             group["name"] = anchor_group_name;
             group["proxies"] = group_name;
             anchor_replaced = true;
@@ -157,7 +156,7 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
         if (group["proxies"].IsDefined()) {
             auto proxies = group["proxies"].as<std::vector<std::string>>();
             if (std::find(proxies.begin(), proxies.end(), anchor) != proxies.end()) {
-                spdlog::debug("Replace anchor proxy with provider name in group {}", name);
+                SPDLOG_DEBUG("Replace anchor proxy with provider name in group {}", name);
                 std::replace(proxies.begin(), proxies.end(), anchor, anchor_group_name);
                 group["proxies"] = proxies;
                 continue;
@@ -167,7 +166,7 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
 
     // insert node when no anchor defined
     if (!anchor_replaced) {
-        spdlog::debug("Anchor group not found, insert generated group to the end");
+        SPDLOG_DEBUG("Anchor group not found, insert generated group to the end");
         auto group_node = yaml_proxy_group(anchor_group_name, ProxyGroupType::SELECT);
         group_node["proxies"] = group_name;
         yaml_template["proxy-groups"].push_back(group_node);
@@ -184,7 +183,7 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
 
     // merge external rule, if applied
     if (!config.rules_uri.empty()) {
-        spdlog::info("External rule {} will be merged", config.rules_uri);
+        SPDLOG_INFO("External rule {} will be merged", config.rules_uri);
         RuleExtractor rule_extractor;
         rule_extractor.load(config.rules_uri);
 
@@ -198,10 +197,10 @@ YAML::Node ClashSubGenerator::generate_providers(const YAML::Node &node) {
     const auto directory_name = get_file_full_path("providers");
     // create directory if not exists
     if (!FileSystem::exists(directory_name)) {
-        spdlog::debug("directory {} not exist, creating...", directory_name);
+        SPDLOG_DEBUG("directory {} not exist, creating...", directory_name);
         FileSystem::mkdir(directory_name);
     } else {
-        spdlog::debug("clearing directory {}", directory_name);
+        SPDLOG_DEBUG("clearing directory {}", directory_name);
         FileSystem::clear_directory<std::string_view>(directory_name);
     }
 

@@ -49,7 +49,7 @@ std::string HttpClient::get(const Uri &uri) {
 }
 
 std::string HttpClient::get(std::string_view uri) {
-    spdlog::debug("Fetch uri {}", uri);
+    SPDLOG_DEBUG("Fetch uri {}", uri);
     auto parse_result = Uri::Parse(uri);
 
     return get(parse_result);
@@ -71,12 +71,12 @@ std::string HttpClient::get_ca_path() {
     // search
     if (path.empty() && !inited) {
         inited = true;
-        spdlog::trace("Start initialize httpclient");
-        spdlog::trace("Looking for CA bundle");
+        SPDLOG_TRACE("Start initialize httpclient");
+        SPDLOG_TRACE("Looking for CA bundle");
         for (const auto &spath : search_path) {
             if (FileSystem::exists(spath)) {
-                spdlog::debug("Found CA bundle at {}", spath);
-                spdlog::debug("Server certificate verification enabled");
+                SPDLOG_DEBUG("Found CA bundle at {}", spath);
+                SPDLOG_DEBUG("Server certificate verification enabled");
                 path = spath;
                 break;
             }
