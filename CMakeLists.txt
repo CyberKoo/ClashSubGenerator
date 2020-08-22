@@ -12,13 +12,20 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES Release)
+    if(STANDALONE)
+        message(STATUS "Build statically linked binary")
+        set(OPENSSL_USE_STATIC_LIBS TRUE)
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -static")
+    endif()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -flto")
 elseif (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb -gdwarf-3")
     enable_testing()
 endif (CMAKE_BUILD_TYPE MATCHES Release)
 
-# define version
+OPTION(STANDALONE OFF "Compile standalone binary file")
+
+    # define version
 set(CSG_VERSION_MAJOR 0)
 set(CSG_VERSION_MINOR 3)
 set(CSG_VERSION_PATCH 1)
