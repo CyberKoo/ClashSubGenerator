@@ -14,6 +14,11 @@ public:
     ~ShadowsocksDecoder() override = default;
 
     YAML::Node decode_config(const Uri &uri) override;
+
+private:
+    static std::map<std::string, std::string> parse_config(std::string_view config);
+
+    static std::string find_extract(std::string &str, std::string_view delimiter, bool reverse);
 };
 
 

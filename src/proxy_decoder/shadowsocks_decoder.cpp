@@ -8,34 +8,46 @@
 #include "shadowsocks_decoder.h"
 #include "../uri.h"
 #include "../utils.h"
-#include "../exception/unsupported_configuration.h"
+#include "../exception/config_parse_exception.h"
 
 YAML::Node ShadowsocksDecoder::decode_config(const Uri &uri) {
-    auto [name, raw_config] = strip_name(uri.getHost());
+    auto[name, raw_config] = strip_name(uri.getHost());
     auto decoded_config = decode_base64(raw_config);
-    auto credentials_pos = decoded_config.find('@');
-
+    proxy = parse_config(decoded_config);
     proxy["type"] = std::string("ss");
     proxy["name"] = Utils::url_decode(name, true);
     if (name.empty()) {
         proxy["name"] = fmt::format("shadowsocks_{}", Utils::get_random_string(10));
     }
 
-    auto credentials = Utils::split(decoded_config.substr(0, credentials_pos), ':');
-    if (credentials.size() != 2) {
-        throw UnsupportedConfiguration("Incorrect Shadowsocks settings, missing cipher or password");
-    }
-
-    proxy["cipher"] = credentials[0];
-    proxy["password"] = credentials[1];
-
-    auto server_config = Utils::split(decoded_config.substr(credentials_pos + 1, decoded_config.size() - 1), ':');
-    if (server_config.size() == 2) {
-        proxy["server"] = server_config[0];
-        proxy["port"] = server_config[1];
-    } else {
-        throw UnsupportedConfiguration("Incorrect Shadowsocks config, missing server or port");
-    }
-
     return proxy;
+}
+
+std::map<std::string, std::string> ShadowsocksDecoder::parse_config(std::string_view config) {
+    std::map<std::string, std::string> parse_result;
+    std::string new_cfg = config.data();
+    parse_result.insert({"port", find_extract(new_cfg, ":", true)});
+    parse_result.insert({"host", find_extract(new_cfg, "@", true)});
+    parse_result.insert({"password", find_extract(new_cfg, ":", false)});
+    parse_result.insert({"cipher", new_cfg});
+
+    return parse_result;
+}
+
+std::string ShadowsocksDecoder::find_extract(std::string &str, std::string_view delimiter, bool reverse) {
+    std::string::size_type pos;
+    if (!reverse) {
+        pos = str.find(delimiter);
+    } else {
+        pos = str.rfind(delimiter);
+    }
+
+    if (pos == std::string::npos) {
+        throw ConfigParseException(fmt::format("unable to find position of delimiter {}", delimiter));
+    }
+
+    auto result = str.substr(pos + 1, str.size());
+    str.resize(pos);
+
+    return result;
 }
