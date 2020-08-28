@@ -3,6 +3,7 @@
 //
 
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "config_loader.h"
 #include "rule_extractor.h"
