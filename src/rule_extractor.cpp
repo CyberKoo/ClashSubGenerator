@@ -3,9 +3,8 @@
 //
 
 #include <spdlog/spdlog.h>
-#include <yaml-cpp/yaml.h>
 
-#include "httpclient.h"
+#include "config_loader.h"
 #include "rule_extractor.h"
 #include "exception/missing_key_exception.h"
 #include "exception/invalid_yaml_excaption.h"
@@ -19,17 +18,16 @@ YAML::Node RuleExtractor::get() {
 }
 
 void RuleExtractor::load(std::string_view uri) {
-    auto response = HttpClient::get(uri);
-    auto yaml_rules = YAML::Load(response);
+    auto yaml_rules = ConfigLoader::instance()->load_yaml(uri);
 
     if (!yaml_rules.IsDefined() || yaml_rules.IsScalar()) {
-        SPDLOG_DEBUG("Loaded content: {}", response);
+        SPDLOG_DEBUG("Uri {} loaded", uri);
         throw InvalidYamlException("Invalid Yaml file loaded");
     }
 
     rules = yaml_rules["rules"];
 
     if (rules.size() == 0) {
-        SPDLOG_WARN("Empty rule Loaded");
+        SPDLOG_WARN("Empty rule loaded");
     }
 }

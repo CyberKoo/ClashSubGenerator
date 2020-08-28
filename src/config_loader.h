@@ -5,6 +5,7 @@
 #ifndef CLASHSUBGENERATOR_CONFIG_LOADER_H
 #define CLASHSUBGENERATOR_CONFIG_LOADER_H
 
+#include <map>
 #include <string>
 #include <filesystem>
 #include <yaml-cpp/node/node.h>
@@ -22,6 +23,7 @@ public:
     YAML::Node load_yaml(std::string_view uri, bool local_only = false, bool use_cache = false);
 
     void destroy_cache();
+
 private:
     ConfigLoader() = default;
 
