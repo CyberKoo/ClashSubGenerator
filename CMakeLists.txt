@@ -6,26 +6,16 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -s -flto")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb -gdwarf-3")
+
+OPTION(STATIC OFF "Compile standalone binary file")
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-if (CMAKE_BUILD_TYPE MATCHES Release)
-    if(STANDALONE)
-        message(STATUS "Build statically linked binary")
-        set(OPENSSL_USE_STATIC_LIBS TRUE)
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -static")
-    endif()
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -flto")
-elseif (CMAKE_BUILD_TYPE MATCHES Debug)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb -gdwarf-3")
-    enable_testing()
-endif (CMAKE_BUILD_TYPE MATCHES Release)
-
-OPTION(STANDALONE OFF "Compile standalone binary file")
-
-    # define version
+# define version
 set(CSG_VERSION_MAJOR 0)
 set(CSG_VERSION_MINOR 3)
 set(CSG_VERSION_PATCH 1)
@@ -38,27 +28,32 @@ else ()
     set(CSG_RELEASE_INFO RELEASE)
 endif ()
 
-# require filesystem module
-find_package(Filesystem REQUIRED)
-
 # generate version.h
 include_directories(${CMAKE_BINARY_DIR})
 configure_file("${CMAKE_SOURCE_DIR}/src/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
 
-# OpenSSL
+## submodules ##
+# filesystem
+find_package(Filesystem REQUIRED)
+
+# zlib
+find_package(ZLIB REQUIRED)
+
+#openssl
 find_package(OpenSSL REQUIRED)
 message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
-include_directories(${OPENSSL_INCLUDE_DIRS})
 
 # optional
 include(LoadOptional)
 LOAD_OPTIONAL(Yaml-cpp yaml-cpp)
 LOAD_OPTIONAL(fmt fmt)
 
-# submodules
-set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
 # spdlog
+set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
 add_subdirectory(deps/spdlog)
+# define spdlog logging level
+add_compile_definitions(SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG)
+
 # CLI11
 set(CLI11_BUILD_DOCS OFF)
 set(CLI11_BUILD_TESTS OFF)
@@ -66,18 +61,25 @@ set(CLI11_BUILD_EXAMPLES OFF)
 set(CLI11_BUILD_EXAMPLES_JSON OFF)
 set(CLI11_SINGLE_FILE_TESTS OFF)
 add_subdirectory(deps/CLI11)
+
 # cpp-httplib
 add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
 set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
 add_subdirectory(deps/cpp-httplib)
+## submodules ##
 
 # glob files
 file(GLOB_RECURSE Exceptions "src/exception/*.h")
 file(GLOB_RECURSE ProxyDecoderHeaders "src/proxy_decoder/*.h")
 file(GLOB_RECURSE ProxyDecoderSources "src/proxy_decoder/*.cpp")
 
-# define spdlog logging level
-add_compile_definitions(SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG)
+if (STATIC)
+    message(STATUS "Build statically linked binary")
+    set(OPENSSL_USE_STATIC_LIBS TRUE)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+endif ()
 
 # source code
 set(ProxyDecoder ${ProxyDecoderHeaders} ${ProxyDecoderSources})
@@ -98,4 +100,4 @@ add_executable(ClashSubGenerator
         ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions} ${ConfigLoader} ${ProxyDecoder}
         ${Subscriber} ${utils} ${Hash} ${base64} ${ClashSubGenerator}
         )
-target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto std::filesystem)
+target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto std::filesystem ZLIB::ZLIB)
