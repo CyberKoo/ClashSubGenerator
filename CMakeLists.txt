@@ -28,6 +28,14 @@ else ()
     set(CSG_RELEASE_INFO RELEASE)
 endif ()
 
+if (STATIC)
+    message(STATUS "Build statically linked binary")
+    set(OPENSSL_USE_STATIC_LIBS TRUE)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+endif ()
+
 # generate version.h
 include_directories(${CMAKE_BINARY_DIR})
 configure_file("${CMAKE_SOURCE_DIR}/src/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
@@ -72,14 +80,6 @@ add_subdirectory(deps/cpp-httplib)
 file(GLOB_RECURSE Exceptions "src/exception/*.h")
 file(GLOB_RECURSE ProxyDecoderHeaders "src/proxy_decoder/*.h")
 file(GLOB_RECURSE ProxyDecoderSources "src/proxy_decoder/*.cpp")
-
-if (STATIC)
-    message(STATUS "Build statically linked binary")
-    set(OPENSSL_USE_STATIC_LIBS TRUE)
-    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ${CMAKE_FIND_LIBRARY_SUFFIXES})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
-    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-endif ()
 
 # source code
 set(ProxyDecoder ${ProxyDecoderHeaders} ${ProxyDecoderSources})
