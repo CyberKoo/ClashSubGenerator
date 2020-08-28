@@ -26,15 +26,15 @@ YAML::Node ShadowsocksDecoder::decode_config(const Uri &uri) {
 std::map<std::string, std::string> ShadowsocksDecoder::parse_config(std::string_view config) {
     std::map<std::string, std::string> parse_result;
     std::string new_cfg = config.data();
-    parse_result.insert({"port", find_extract(new_cfg, ":", true)});
-    parse_result.insert({"host", find_extract(new_cfg, "@", true)});
-    parse_result.insert({"password", find_extract(new_cfg, ":", false)});
+    parse_result.insert({"port", find_extract(new_cfg, ':', true)});
+    parse_result.insert({"host", find_extract(new_cfg, '@', true)});
+    parse_result.insert({"password", find_extract(new_cfg, ':', false)});
     parse_result.insert({"cipher", new_cfg});
 
     return parse_result;
 }
 
-std::string ShadowsocksDecoder::find_extract(std::string &str, std::string_view delimiter, bool reverse) {
+std::string ShadowsocksDecoder::find_extract(std::string &str, char delimiter, bool reverse) {
     std::string::size_type pos;
     if (!reverse) {
         pos = str.find(delimiter);

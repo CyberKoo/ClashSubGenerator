@@ -52,7 +52,7 @@ void YAMLHelper::node_renamer(const YAML::Node &node, std::string_view search, c
     for (auto item: node) {
         auto key_name = item.first.as<std::string>();
         if (key_name == search) {
-            item.first = YAML::Node(replace.data());
+            item.first = replace;
             SPDLOG_TRACE("Replace key {} to {}", key_name, replace);
             break;
         }
@@ -61,6 +61,6 @@ void YAMLHelper::node_renamer(const YAML::Node &node, std::string_view search, c
 
 void YAMLHelper::node_merger(const YAML::Node &source_node, YAML::Node target_node) {
     for (const auto &node : source_node) {
-        target_node.push_back(YAML::Node(node));
+        target_node.push_back(node);
     }
 }

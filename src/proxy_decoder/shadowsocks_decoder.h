@@ -18,7 +18,7 @@ public:
 private:
     static std::map<std::string, std::string> parse_config(std::string_view config);
 
-    static std::string find_extract(std::string &str, std::string_view delimiter, bool reverse);
+    static std::string find_extract(std::string &str, char delimiter, bool reverse);
 };
 
 
