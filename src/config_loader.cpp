@@ -11,6 +11,7 @@
 #include "hash.h"
 #include "httpclient.h"
 #include "filesystem.h"
+#include "exception/invalid_uri_exception.h"
 
 std::shared_ptr<ConfigLoader> ConfigLoader::instance() {
     static const std::shared_ptr<ConfigLoader> instance{new ConfigLoader{}};
@@ -19,6 +20,7 @@ std::shared_ptr<ConfigLoader> ConfigLoader::instance() {
 
 std::string ConfigLoader::load_raw(std::string_view uri, bool local_only, bool use_cache) {
     auto uri_result = Uri::Parse(uri);
+    validate_schema(uri_result);
 
     // add support of protocol file://
     if (uri_result.getSchema() == "file" || local_only) {
@@ -41,11 +43,11 @@ std::string ConfigLoader::load_raw(std::string_view uri, bool local_only, bool u
 
 YAML::Node ConfigLoader::load_yaml(std::string_view uri, bool local_only, bool use_cache) {
     auto uri_result = Uri::Parse(uri);
+    validate_schema(uri_result);
 
     // add support of protocol file://
     if (uri_result.getSchema() == "file" || local_only) {
         SPDLOG_DEBUG("load local yaml file {}", uri_result.getBody());
-
         auto path = uri_result.getBody();
         if (FileSystem::exists(path)) {
             return YAML::LoadFile(path.data());
@@ -80,4 +82,16 @@ void ConfigLoader::destroy_cache() {
     auto size = cache.size();
     cache.clear();
     SPDLOG_DEBUG("{} cached data deleted", size);
+}
+
+void ConfigLoader::validate_schema(const Uri &uri) {
+    constexpr std::string_view valid_schema[] = {"http", "https", "file"};
+
+    for (const auto &schema : valid_schema) {
+        if (schema == uri.getSchema()) {
+            return;
+        }
+    }
+
+    throw InvalidURIException(fmt::format("URI {} doesn't have a valid schema", uri.getRawUri()));
 }

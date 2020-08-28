@@ -27,6 +27,8 @@ private:
 
     std::string cache_loader(const Uri &uri, bool use_cache);
 
+    static void validate_schema(const Uri &uri);
+
 private:
     std::map<std::string, std::string> cache;
 };
