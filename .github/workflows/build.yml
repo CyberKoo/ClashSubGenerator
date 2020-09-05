@@ -85,7 +85,7 @@ jobs:
 #          distribution: ubuntu20.04
 #          run: |
 #            ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-#            apt update && DEBIAN_FRONTEND=noninteractive apt -y install build-essential libssl-dev upx cmake git
+#            apt update && DEBIAN_FRONTEND=noninteractive apt -y install build-essential libssl-dev zlib1g zlib1g-dev upx cmake git
 #            cd build-debug && cmake ../ -DCMAKE_BUILD_TYPE=Debug
 #            make -s -j 4
 #            cd ../build-release && cmake ../ -DCMAKE_BUILD_TYPE=Release

@@ -18,8 +18,8 @@ endif ()
 # define version
 set(CSG_VERSION_MAJOR 0)
 set(CSG_VERSION_MINOR 3)
-set(CSG_VERSION_PATCH 1)
-set(CSG_DEVELOPMENT OFF)
+set(CSG_VERSION_PATCH 2)
+set(CSG_DEVELOPMENT ON)
 
 if (CSG_DEVELOPMENT)
     include(GitVersion)

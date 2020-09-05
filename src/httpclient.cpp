@@ -87,5 +87,5 @@ std::string HttpClient::get_ca_path() {
 }
 
 std::string HttpClient::get_user_agent() {
-    return get_version();
+    return fmt::format("ClashSubGenerator/{}.{}.{}-{}", CSG_MAJOR, CSG_MINOR, CSG_PATCH, CSG_RELEASE_INFO);
 }
