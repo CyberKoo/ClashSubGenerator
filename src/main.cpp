@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     gen_opts->add_flag("-g,--grouping", config.enable_grouping, "Grouping proxies by name")
             ->default_val(false)->needs(provider_name)->required(false);
     gen_opts->add_flag("-E,--exclude_amplified_proxy", config.exclude_amplified_proxy, "Exclude amplified proxy")
-            ->default_val(true)->required(false);
+            ->default_val(false)->required(false);
     gen_opts->add_option("-m,--min_group_size", config.group_min_size, "Minimum size of a group")
             ->required(false)->default_val(2)->check(CLI::Range(1, 10));
     gen_opts->add_option("-r,--rules_url", config.rules_uri, "External Rules url");
