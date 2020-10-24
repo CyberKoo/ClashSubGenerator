@@ -44,7 +44,9 @@ private:
 
     YAML::Node system_config;
 
-    static constexpr std::string_view ungrouped_name = "Ungrouped";
+    static constexpr std::string_view UNGROUPED_NAME = "Ungrouped";
+
+    static constexpr std::string_view ANCHOR_NAME = "__ANCHOR__";
 };
 
 #endif //CLASHSUBGENERATOR_CLASH_GENERATOR_H

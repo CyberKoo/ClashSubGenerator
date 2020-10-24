@@ -40,7 +40,7 @@ void ClashSubGenerator::run() {
             SPDLOG_INFO("Provider is set to {}", config.provider_name);
         } else {
             SPDLOG_WARN("Provider {} is not defined in the config file, name2emoji may not work properly.",
-                         config.provider_name);
+                        config.provider_name);
             if (config.enable_grouping) {
                 SPDLOG_WARN("Grouping is disabled due to no valid provider provided.");
             }
@@ -100,7 +100,8 @@ YAML::Node ClashSubGenerator::get_config(std::string_view filename, std::string_
     } else {
         if (!config.local_only) {
             SPDLOG_WARN("Unable to load local file: {}, download from repository", repository_filename);
-            return ConfigLoader::instance()->load_yaml(fmt::format("{}/{}", config.repository_url, repository_filename));
+            return ConfigLoader::instance()->load_yaml(
+                    fmt::format("{}/{}", config.repository_url, repository_filename));
         } else {
             spdlog::error("Local only enabled, fetch configuration from repository is not allowed");
             throw FileSystemException(fmt::format("file {} doesn't exist", filename));
@@ -140,44 +141,67 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
         yaml_template["proxy-providers"] = node["proxy-providers"];
     }
 
-    bool anchor_replaced = false;
-    const std::string anchor = "__ANCHOR__";
-    auto new_group_name = config.provider_name.empty() ? "Generated" : config.provider_name;
-    for (auto group : yaml_template["proxy-groups"]) {
-        auto name = group["name"].as<std::string>();
-        if (name == anchor) {
-            SPDLOG_DEBUG("Anchor group replace by {}", new_group_name);
-            group["name"] = new_group_name;
-            group["proxies"] = group_name;
-            anchor_replaced = true;
-            continue;
-        }
-
-        if (group["proxies"].IsDefined()) {
-            auto proxies = group["proxies"].as<std::vector<std::string>>();
-            if (std::find(proxies.begin(), proxies.end(), anchor) != proxies.end()) {
-                SPDLOG_DEBUG("Replace anchor group in group", name);
-                std::replace(proxies.begin(), proxies.end(), anchor, new_group_name);
-                group["proxies"] = proxies;
+    if (proxy_groups.size() != 0) {
+        bool anchor_replaced = false;
+        auto new_group_name = config.provider_name.empty() ? "Generated" : config.provider_name;
+        for (auto group : yaml_template["proxy-groups"]) {
+            auto name = group["name"].as<std::string>();
+            if (name == ANCHOR_NAME) {
+                SPDLOG_DEBUG("Anchor group replace by {}", new_group_name);
+                group["name"] = new_group_name;
+                group["proxies"] = group_name;
+                anchor_replaced = true;
                 continue;
             }
+
+            if (group["proxies"].IsDefined()) {
+                auto proxies = group["proxies"].as<std::vector<std::string>>();
+                if (std::find(proxies.begin(), proxies.end(), ANCHOR_NAME) != proxies.end()) {
+                    SPDLOG_DEBUG("Replace anchor group in group {}", name);
+                    std::replace(proxies.begin(), proxies.end(), std::string(ANCHOR_NAME), new_group_name);
+                    group["proxies"] = proxies;
+                    continue;
+                }
+            }
         }
-    }
 
-    // insert node when no anchor defined
-    if (!anchor_replaced) {
-        SPDLOG_DEBUG("Anchor group not found, insert generated group to the end");
-        auto group_node = yaml_proxy_group(new_group_name, ProxyGroupType::SELECT);
-        group_node["proxies"] = group_name;
-        yaml_template["proxy-groups"].push_back(group_node);
-    }
+        // insert node when no anchor defined
+        if (!anchor_replaced) {
+            SPDLOG_DEBUG("Anchor group not found, insert generated group to the end");
+            auto group_node = yaml_proxy_group(new_group_name, ProxyGroupType::SELECT);
+            group_node["proxies"] = group_name;
+            yaml_template["proxy-groups"].push_back(group_node);
+        }
 
-    // replace anchor in user-defined rules
-    for (const auto &rule : yaml_template["rules"]) {
-        auto s_rule = rule.as<std::string>();
-        if (s_rule.find(anchor) != std::string::npos) {
-            Utils::replace(s_rule, {{anchor, new_group_name}});
-            (YAML::Node(rule)) = s_rule;
+        // replace anchor in user-defined rules
+        for (const auto &rule : yaml_template["rules"]) {
+            auto s_rule = rule.as<std::string>();
+            if (s_rule.find(ANCHOR_NAME) != std::string::npos) {
+                Utils::replace(s_rule, {{ANCHOR_NAME, new_group_name}});
+                (YAML::Node(rule)) = s_rule;
+            }
+        }
+    } else {
+        // remove anchor group
+        SPDLOG_WARN("Remove all anchor proxy", config.rules_uri);
+        for (size_t i = 0; i < yaml_template["proxy-groups"].size(); ++i) {
+            if (yaml_template["proxy-groups"][i]["name"].as<std::string>() == ANCHOR_NAME) {
+                yaml_template["proxy-groups"].remove(i);
+                break;
+            }
+        }
+
+        // remove anchor in group
+        for (auto group : yaml_template["proxy-groups"]) {
+            auto name = group["name"].as<std::string>();
+            if (group["proxies"].IsDefined()) {
+                auto proxies = group["proxies"].as<std::vector<std::string>>();
+                for (auto it = std::find(proxies.begin(), proxies.end(), ANCHOR_NAME); it != proxies.end();) {
+                    proxies.erase(it);
+                }
+                SPDLOG_DEBUG("Remove anchor group in group {}", name);
+                group["proxies"] = proxies;
+            }
         }
     }
 
@@ -230,7 +254,7 @@ YAML::Node ClashSubGenerator::generate_providers(const YAML::Node &node) {
                                                                            "", true);
 
         // write proxy groups
-        auto search_result = group_name.find(ungrouped_name) == std::string::npos;
+        auto search_result = group_name.find(UNGROUPED_NAME) == std::string::npos;
         auto proxy_group_type = search_result ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
         auto proxy_group = yaml_proxy_group(group_name, proxy_group_type);
         YAMLHelper::node_renamer(proxy_group, "proxies", "use");
@@ -245,7 +269,7 @@ YAML::Node ClashSubGenerator::build_groups(const YAML::Node &groups) {
     YAML::Node new_groups = YAML::Node(YAML::NodeType::Sequence);
     for (const YAML::Node &group: groups) {
         auto group_name = group["name"].as<std::string>();
-        auto search_result = group_name.find(ungrouped_name) == std::string::npos;
+        auto search_result = group_name.find(UNGROUPED_NAME) == std::string::npos;
         auto proxy_group_type = search_result ? ProxyGroupType::URL_TEST : ProxyGroupType::SELECT;
         auto new_group = yaml_proxy_group(group_name, proxy_group_type);
         new_group["proxies"] = group["proxies"];
