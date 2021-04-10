@@ -51,10 +51,11 @@ find_package(ZLIB REQUIRED)
 find_package(OpenSSL REQUIRED)
 message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 
-# optional
-include(LoadOptional)
-LOAD_OPTIONAL(Yaml-cpp yaml-cpp)
-LOAD_OPTIONAL(fmt fmt)
+# yaml-cpp
+add_subdirectory(deps/yaml-cpp)
+
+# fmt
+add_subdirectory(deps/fmt)
 
 # spdlog
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
