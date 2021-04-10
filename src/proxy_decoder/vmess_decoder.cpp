@@ -33,7 +33,7 @@ YAML::Node VmessDecoder::decode_config(const Uri &uri) {
     // check version
     if (v2ray_config["v"].IsDefined() && v2ray_config["v"].IsScalar()) {
         if (v2ray_config["v"].as<int>() != 2) {
-            throw UnsupportedConfiguration("only support v2rayN ver-2 format");
+            throw UnsupportedConfiguration("only support v2rayN ver2 format");
         }
     }
 

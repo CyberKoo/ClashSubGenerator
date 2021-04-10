@@ -24,7 +24,7 @@ std::string ConfigLoader::load_raw(std::string_view uri, bool local_only, bool u
 
     // add support of protocol file://
     if (uri_result.getSchema() == "file" || local_only) {
-        SPDLOG_DEBUG("Load local file {}", uri);
+        SPDLOG_DEBUG("Load local file {}", uri_result.getBody());
         auto path = uri_result.getBody();
         try {
             if (FileSystem::exists(path)) {
