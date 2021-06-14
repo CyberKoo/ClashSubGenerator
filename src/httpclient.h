@@ -24,6 +24,8 @@ private:
     static std::string get_ca_path();
 
     static std::string get_user_agent();
+
+    static std::string_view get_proxy();
 };
 
 #endif //CLASHSUBGENERATOR_HTTPCLIENT_H

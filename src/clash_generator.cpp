@@ -199,7 +199,7 @@ YAML::Node ClashSubGenerator::generate_config_file(const YAML::Node &node, const
                 for (auto it = std::find(proxies.begin(), proxies.end(), ANCHOR_NAME); it != proxies.end();) {
                     proxies.erase(it);
                 }
-                SPDLOG_DEBUG("Remove anchor group in group {}", name);
+                SPDLOG_DEBUG("Remove anchor node in group {}", name);
                 group["proxies"] = proxies;
             }
         }
