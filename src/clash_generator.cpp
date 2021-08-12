@@ -75,6 +75,12 @@ void ClashSubGenerator::run() {
         }
     }
 
+    // replace interface-name if required
+    if(!config.nic_name.empty()) {
+        SPDLOG_DEBUG("Update interface-name to {}", config.nic_name);
+        clash_config["interface-name"] = config.nic_name;
+    }
+
     // write config.yaml
     YAMLHelper::write_yaml(clash_config, get_file_full_path(config.output));
 }
