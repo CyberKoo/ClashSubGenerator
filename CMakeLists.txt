@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 project(ClashSubGenerator)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -61,7 +61,7 @@ add_subdirectory(deps/fmt)
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
 add_subdirectory(deps/spdlog)
 # define spdlog logging level
-add_compile_definitions(SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG)
+add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
 
 # CLI11
 set(CLI11_BUILD_DOCS OFF)
@@ -90,7 +90,7 @@ set(RuleExtractor src/rule_extractor.cpp src/rule_extractor.h)
 set(HttpClient src/httpclient.cpp src/httpclient.h)
 set(URI src/uri.cpp src/uri.h)
 set(Hash src/hash.cpp src/hash.h)
-set(version src/version.cpp src/version.h)
+set(version src/version.cpp)
 set(base64 src/base64.cpp src/base64.h)
 set(YAMLHelper src/yaml_helper.cpp src/yaml_helper.h)
 set(ConfigLoader src/config_loader.cpp src/config_loader.h)

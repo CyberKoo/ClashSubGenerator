@@ -4,48 +4,47 @@
 
 #include <iomanip>
 #include <sstream>
-#include <openssl/sha.h>
-#include <openssl/md5.h>
+#include <openssl/evp.h>
 
 #include "hash.h"
 
+
 template<class T>
-std::string get_str(const T &hash) {
+std::string hex2str(const T &hash, const size_t length) {
     std::stringstream ss;
 
-    for (const auto &value : hash) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int) value;
+    for (unsigned int i = 0; i < length; ++i) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
     }
 
     return ss.str();
 }
 
-std::string Hash::md5(std::string_view str) {
-    unsigned char hash[MD5_DIGEST_LENGTH];
-    MD5_CTX md5;
-    MD5_Init(&md5);
-    MD5_Update(&md5, str.data(), str.size());
-    MD5_Final(hash, &md5);
+std::string getMessageDigest(std::string_view msg, const EVP_MD *algorithm) {
+    auto context = std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (context) {
+        if (EVP_DigestInit_ex(context.get(), algorithm, nullptr)) {
+            if (EVP_DigestUpdate(context.get(), msg.data(), msg.size())) {
+                unsigned char hash[EVP_MAX_MD_SIZE]{};
+                unsigned int length = 0;
+                if (EVP_DigestFinal_ex(context.get(), hash, &length)) {
+                    return hex2str(hash, length);
+                }
+            }
+        }
+    }
 
-    return get_str(hash);
+    throw std::runtime_error("an error occurred when compute message digest");
+}
+
+std::string Hash::md5(std::string_view str) {
+    return getMessageDigest(str, EVP_md5());
 }
 
 std::string Hash::sha1(std::string_view str) {
-    unsigned char hash[SHA_DIGEST_LENGTH];
-    SHA_CTX sha1;
-    SHA1_Init(&sha1);
-    SHA1_Update(&sha1, str.data(), str.size());
-    SHA1_Final(hash, &sha1);
-
-    return get_str(hash);
+    return getMessageDigest(str, EVP_sha1());
 }
 
 std::string Hash::sha256(std::string_view str) {
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, str.data(), str.size());
-    SHA256_Final(hash, &sha256);
-
-    return get_str(hash);
+    return getMessageDigest(str, EVP_sha256());
 }

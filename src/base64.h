@@ -8,8 +8,6 @@
 #include <string>
 
 namespace Base64 {
-    using container_t = std::vector<unsigned char>;
-
     std::string encode(std::string_view data);
 
     std::string decode(std::string_view data);
