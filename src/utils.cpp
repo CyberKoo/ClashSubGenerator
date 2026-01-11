@@ -30,7 +30,7 @@ std::string Utils::str_tolower(std::string s) {
     return s;
 }
 
-std::vector<std::string> Utils::split(const std::string &s, const char delim) {
+std::vector<std::string> Utils::split(const std::string& s, const char delim) {
     return Utils::split(std::string_view(s), delim);
 }
 
@@ -46,7 +46,7 @@ std::vector<std::string> Utils::split(std::string_view s, const char delim) {
     return elements;
 }
 
-std::string Utils::get_time(std::string_view format, const std::time_t &timestamp) {
+std::string Utils::get_time(std::string_view format, const std::time_t& timestamp) {
     char buffer[100];
     if (std::strftime(buffer, sizeof(buffer), format.data(), std::localtime(&timestamp))) {
         return buffer;
@@ -61,21 +61,21 @@ std::string Utils::get_time(std::string_view format) {
 
 // from https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 // trim from start (in place)
-void Utils::ltrim(std::string &s) {
+void Utils::ltrim(std::string& s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
         return !std::isspace(ch);
     }));
 }
 
 // trim from end (in place)
-void Utils::rtrim(std::string &s) {
+void Utils::rtrim(std::string& s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
         return !std::isspace(ch);
     }).base(), s.end());
 }
 
 // trim from both ends (in place)
-void Utils::trim(std::string &s) {
+void Utils::trim(std::string& s) {
     Utils::ltrim(s);
     Utils::rtrim(s);
 }
@@ -98,8 +98,8 @@ std::string Utils::trim_copy(std::string s) {
     return s;
 }
 
-void Utils::replace(std::string &str, const std::map<std::string_view, std::string_view> &replace_list) {
-    for (const auto &[target, new_content]: replace_list) {
+void Utils::replace(std::string& str, const std::map<std::string_view, std::string_view>& replace_list) {
+    for (const auto& [target, new_content] : replace_list) {
         auto pos = str.find(target);
         while (pos != std::string::npos) {
             str.replace(pos, target.length(), new_content);
@@ -108,13 +108,19 @@ void Utils::replace(std::string &str, const std::map<std::string_view, std::stri
     }
 }
 
-std::string Utils::replace_copy(std::string_view str, const std::map<std::string_view, std::string_view> &replace_list) {
+std::string Utils::replace_copy(std::string_view str,
+                                const std::map<std::string_view, std::string_view>& replace_list) {
     auto s = std::string(str);
     Utils::replace(s, replace_list);
 
     return s;
 }
 
-std::string Utils::url_decode(const std::string &url_encoded, bool convert_plus_to_space) {
-    return httplib::detail::decode_url(url_encoded, convert_plus_to_space);
+std::string Utils::url_decode(const std::string& url_encoded, bool convert_plus_to_space) {
+    auto decoded = httplib::decode_uri(url_encoded);
+    if (convert_plus_to_space) {
+        replace(decoded, {{"+", " "}});
+    }
+
+    return decoded;
 }
