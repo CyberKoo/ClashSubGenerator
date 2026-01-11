@@ -1,11 +1,11 @@
 //
 // Created by Kotarou on 2020/8/3.
 //
+#include "proxy_decoder_factory.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <yaml-cpp/yaml.h>
 
-#include "proxy_decoder_factory.h"
 #include "vmess_decoder.h"
 #include "socks5_decoder.h"
 #include "trojan_decoder.h"
@@ -26,5 +26,5 @@ std::unique_ptr<ProxyDecoder> ProxyDecoderFactory::make(std::string_view protoco
         return std::make_unique<TrojanDecoder>();
     }
 
-    throw UnsupportedConfiguration(fmt::format("Unable to determine the protocol", protocol));
+    throw UnsupportedConfiguration(std::format("Unable to determine the protocol", protocol));
 }

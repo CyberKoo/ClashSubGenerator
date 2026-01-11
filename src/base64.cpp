@@ -1,13 +1,13 @@
 //
 // Created by Kotarou on 2020/3/19.
 //
-#include <openssl/evp.h>
-#include <fmt/format.h>
-#include <memory>
-
 #include "base64.h"
 
+#include <format>
+#include <memory>
 #include <stdexcept>
+
+#include <openssl/evp.h>
 
 std::string Base64::encode(std::string_view text) {
     int text_len = static_cast<int>(text.length());
@@ -16,17 +16,17 @@ std::string Base64::encode(std::string_view text) {
     auto buffer = std::make_unique<char[]>(len_pred + 1);
 
     auto len_actual = EVP_EncodeBlock(
-        reinterpret_cast<unsigned char *>(buffer.get()),
-        reinterpret_cast<const unsigned char *>(text.data()),
+        reinterpret_cast<unsigned char*>(buffer.get()),
+        reinterpret_cast<const unsigned char*>(text.data()),
         text_len
     );
 
     if (len_actual == -1) {
-        throw std::runtime_error(fmt::format("encode \"{}\" failed", text));
+        throw std::runtime_error(std::format("encode \"{}\" failed", text));
     }
 
     if (len_pred != len_actual) {
-        throw std::runtime_error(fmt::format("Whoops, encoder predicted {}, but we got {}", len_pred, len_actual));
+        throw std::runtime_error(std::format("Whoops, encoder predicted length {}, but we got {}", len_pred, len_actual));
     }
 
     return {buffer.get()};
@@ -39,17 +39,17 @@ std::string Base64::decode(std::string_view text) {
     auto buffer = std::make_unique<char[]>(len_pred + 1);
 
     auto len_actual = EVP_DecodeBlock(
-        reinterpret_cast<unsigned char *>(buffer.get()),
-        reinterpret_cast<const unsigned char *>(text.data()),
+        reinterpret_cast<unsigned char*>(buffer.get()),
+        reinterpret_cast<const unsigned char*>(text.data()),
         text_len
     );
 
     if (len_actual == -1) {
-        throw std::runtime_error(fmt::format("decode \"{}\" failed", text));
+        throw std::runtime_error(std::format("decode \"{}\" failed", text));
     }
 
     if (len_pred != len_actual) {
-        throw std::runtime_error(fmt::format("Whoops, decoder predicted {}, but we got {}", len_pred, len_actual));
+        throw std::runtime_error(std::format("Whoops, decoder predicted length {}, but we got {}", len_pred, len_actual));
     }
 
     return {buffer.get()};

@@ -2,8 +2,8 @@
 // Created by Kotarou on 2020/3/15.
 //
 #include <string>
+#include <format>
 #include <algorithm>
-#include <fmt/format.h>
 
 #include "uri.h"
 #include "utils.h"
@@ -38,7 +38,7 @@ Uri Uri::Parse(std::string_view uri) {
     }
 
     if (result.Schema.empty()) {
-        throw InvalidURIException(fmt::format("URI doesn't have a valid schema, {0}", uri));
+        throw InvalidURIException(std::format("URI doesn't have a valid schema, {0}", uri));
     }
 
     result.Body = std::string(schemaEnd, uri.end());

@@ -99,7 +99,7 @@ YAML::Node Subscriber::decode_config(std::string_view config) {
     if (decoded_counter.size() > 1) {
         std::string message = "Decoded proxies";
         for (const auto &[name, counter]: decoded_counter) {
-            message += fmt::format(", {}: {}", name, counter);
+            message += std::format(", {}: {}", name, counter);
         }
 
         SPDLOG_INFO(message);
@@ -201,7 +201,7 @@ YAML::Node Subscriber::get() {
     if (!group_result.empty()) {
         auto prefix = provider["prefix"].IsDefined() ? provider["prefix"].as<std::string>() : "Generated";
         for (const auto &[name, nodes]: group_result) {
-            auto group_name = fmt::format("{}-{}", prefix, name);
+            auto group_name = std::format("{}-{}", prefix, name);
             node["group_name"].push_back(group_name);
             SPDLOG_DEBUG("Processing group {}", group_name);
             auto current_group = YAML::Node();
@@ -320,7 +320,7 @@ std::function<std::string(const YAML::Node &)> Subscriber::get_name_generator() 
             id = ++location_counter[name];
         }
 
-        return use_emoji ? fmt::format("{}{:>02d}", name2emoji(name), id) : proxy["name"].as<std::string>();
+        return use_emoji ? std::format("{}{:>02d}", name2emoji(name), id) : proxy["name"].as<std::string>();
     };
 }
 

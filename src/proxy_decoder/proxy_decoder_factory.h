@@ -7,6 +7,7 @@
 
 
 #include <memory>
+#include <string_view>
 
 class ProxyDecoder;
 

@@ -1,12 +1,12 @@
 //
 // Created by Kotarou on 2020/6/26.
 //
+#include "shadowsocksr_decoder.h"
 
 #include <map>
 #include <spdlog/spdlog.h>
 #include <yaml-cpp/yaml.h>
 
-#include "shadowsocksr_decoder.h"
 #include "../uri.h"
 #include "../utils.h"
 #include "../exception/unsupported_configuration.h"
@@ -27,7 +27,7 @@ YAML::Node ShadowsocksRDecoder::decode_config(const Uri &uri) {
     if (!parameters["remarks"].empty()) {
         proxy["name"] = parameters["remarks"];
     } else {
-        proxy["name"] = fmt::format("shadowsocksr_{}", Utils::get_random_string(10));
+        proxy["name"] = std::format("shadowsocksr_{}", Utils::get_random_string(10));
     }
     proxy["type"] = "ssr";
     proxy["server"] = main_config[0];

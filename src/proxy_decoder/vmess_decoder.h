@@ -5,6 +5,7 @@
 #ifndef CLASHSUBGENERATOR_VMESS_DECODER_H
 #define CLASHSUBGENERATOR_VMESS_DECODER_H
 
+#include <functional>
 #include <unordered_map>
 #include "proxy_decoder.h"
 

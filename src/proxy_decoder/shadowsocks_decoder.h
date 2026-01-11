@@ -6,6 +6,7 @@
 #define CLASHSUBGENERATOR_SHADOWSOCKS_DECODER_H
 
 #include "proxy_decoder.h"
+#include <map>
 
 class ShadowsocksDecoder : public ProxyDecoder {
 public:

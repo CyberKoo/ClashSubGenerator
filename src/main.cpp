@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
             ->default_val("sys_config.yaml")->required(false);
     cliApp.add_option("-w,--working_directory", [&config](const CLI::results_t &res) -> bool {
         if (res[0].back() != '/' || res[0].back() != '\\') {
-            config.working_directory = fmt::format("{}/", res[0]);
+            config.working_directory = std::format("{}/", res[0]);
         } else {
             config.working_directory = res[0];
         }

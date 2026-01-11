@@ -1,10 +1,11 @@
 //
 // Created by Kotarou on 2020/6/26.
 //
-#include <fmt/format.h>
+#include "vmess_decoder.h"
+
+#include <format>
 #include <yaml-cpp/yaml.h>
 
-#include "vmess_decoder.h"
 #include "../uri.h"
 #include "../utils.h"
 #include "../exception/unsupported_configuration.h"
@@ -40,7 +41,7 @@ YAML::Node VmessDecoder::decode_config(const Uri &uri) {
     // check spoof type
     if (v2ray_config["type"].IsDefined() && v2ray_config["type"].IsScalar()) {
         if (auto spoof_type = v2ray_config["type"].as<std::string>(); spoof_type != "none") {
-            throw UnsupportedConfiguration(fmt::format("Spoof type {} is not supported by clash yet", spoof_type));
+            throw UnsupportedConfiguration(std::format("Spoof type {} is not supported by clash yet", spoof_type));
         }
     }
 
@@ -50,7 +51,7 @@ YAML::Node VmessDecoder::decode_config(const Uri &uri) {
         if (v2ray_config[vmess.data()].IsDefined() && v2ray_config[vmess.data()].IsScalar()) {
             proxy[clash.data()] = Utils::trim_copy(v2ray_config[vmess.data()].as<std::string>());
         } else {
-            throw MissingKeyException(fmt::format("Required key \"{}\" is missing", vmess));
+            throw MissingKeyException(std::format("Required key \"{}\" is missing", vmess));
         }
     }
 
@@ -62,10 +63,10 @@ YAML::Node VmessDecoder::decode_config(const Uri &uri) {
         if (network_mapper.find(network_str) != network_mapper.end()) {
             network_mapper.at(network_str)();
         } else {
-            throw UnsupportedConfiguration(fmt::format("Network type \"{}\" is not supported by clash yet"));
+            throw UnsupportedConfiguration(std::format("Network type \"{}\" is not supported by clash yet", network_str));
         }
     } else {
-        throw MissingKeyException(fmt::format("Required key \"{}\" is missing", "net"));
+        throw MissingKeyException(std::format("Required key \"{}\" is missing", "net"));
     }
 
     proxy["cipher"] = "auto";

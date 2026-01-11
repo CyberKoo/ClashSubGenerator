@@ -2,12 +2,12 @@
 // Created by Kotarou on 2020/4/7.
 //
 
+#include <memory>
 #include <iomanip>
 #include <sstream>
 #include <openssl/evp.h>
 
 #include "hash.h"
-
 
 template<class T>
 std::string hex2str(const T &hash, const size_t length) {

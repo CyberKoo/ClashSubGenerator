@@ -3,8 +3,10 @@ project(ClashSubGenerator)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -s -flto")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb -gdwarf-3")
@@ -41,24 +43,23 @@ include_directories(${CMAKE_BINARY_DIR})
 configure_file("${CMAKE_SOURCE_DIR}/src/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
 
 ## submodules ##
-# filesystem
-find_package(Filesystem REQUIRED)
 
 # zlib
 find_package(ZLIB REQUIRED)
 
-#openssl
+# openssl
 find_package(OpenSSL REQUIRED)
 message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 
 # yaml-cpp
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "Enable yaml-cpp contrib in library" FORCE)
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Enable parse tools" FORCE)
+set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp shared library" FORCE)
+set(YAML_CPP_INSTALL OFF CACHE BOOL "Enable generation of yaml-cpp install targets" FORCE)
 add_subdirectory(deps/yaml-cpp)
 
-# fmt
-add_subdirectory(deps/fmt)
-
 # spdlog
-set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library instead of bundled" FORCE)
+set(SPDLOG_USE_STD_FORMAT ON CACHE BOOL "Use std::format instead of fmt library" FORCE)
 add_subdirectory(deps/spdlog)
 # define spdlog logging level
 add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
@@ -101,4 +102,5 @@ add_executable(ClashSubGenerator
         ${URI} ${HttpClient} ${RuleExtractor} ${YAMLHelper} ${version} ${Exceptions} ${ConfigLoader} ${ProxyDecoder}
         ${Subscriber} ${utils} ${Hash} ${base64} ${ClashSubGenerator}
         )
-target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 fmt spdlog httplib OpenSSL::SSL OpenSSL::Crypto std::filesystem ZLIB::ZLIB)
+#target_compile_features(ClashSubGenerator PRIVATE cxx_std_20)
+target_link_libraries(ClashSubGenerator PRIVATE yaml-cpp CLI11 spdlog httplib OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)

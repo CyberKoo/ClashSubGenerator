@@ -1,12 +1,12 @@
 //
 // Created by Kotarou on 2020/7/26.
 //
+#include "trojan_decoder.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <yaml-cpp/yaml.h>
 #include <spdlog/spdlog.h>
 
-#include "trojan_decoder.h"
 #include "../uri.h"
 #include "../utils.h"
 #include "../exception/unsupported_configuration.h"

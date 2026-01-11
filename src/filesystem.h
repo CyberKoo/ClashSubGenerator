@@ -14,7 +14,7 @@ class FileSystem {
 public:
     static void error_check(const std::error_code &ec, std::string_view action) {
         if (ec) {
-            throw FileSystemException(fmt::format("An error occurred during {}, {}", action, ec.message()));
+            throw FileSystemException(std::format("An error occurred during {}, {}", action, ec.message()));
         }
     }
 
@@ -63,7 +63,7 @@ public:
             fout << content;
             fout.close();
         } else {
-            throw FileSystemException(fmt::format("unable to open file {}", file_path));
+            throw FileSystemException(std::format("unable to open file {}", file_path));
         }
 
         return true;
@@ -80,7 +80,7 @@ public:
             fout << content;
             fout.close();
         } else {
-            throw FileSystemException(fmt::format("unable to open file {}", file_path));
+            throw FileSystemException(std::format("unable to open file {}", file_path));
         }
 
         return true;

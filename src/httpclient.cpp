@@ -13,7 +13,7 @@
 
 std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
     auto client = std::make_unique<httplib::Client>(
-            fmt::format("{}://{}:{}", uri.getSchema(), uri.getHost(), uri.getPort()).data());
+            std::format("{}://{}:{}", uri.getSchema(), uri.getHost(), uri.getPort()).data());
 
     // apply proxy env variable
     auto proxy_uri = get_proxy();
@@ -43,16 +43,16 @@ std::unique_ptr<httplib::Client> HttpClient::connect(const Uri &uri) {
 
 std::string HttpClient::get(const Uri &uri) {
     auto client = HttpClient::connect(uri);
-    auto response = client->Get(fmt::format("{}?{}", uri.getPath(), uri.getQueryString()).c_str());
+    auto response = client->Get(std::format("{}?{}", uri.getPath(), uri.getQueryString()).c_str());
 
     if (response) {
         if (response->status == 200) {
             return response->body;
         } else {
-            throw InvalidHttpStatusException(fmt::format("Server responded with status {0}", response->status));
+            throw InvalidHttpStatusException(std::format("Server responded with status {0}", response->status));
         }
     } else {
-        throw RequestFailureException(fmt::format("Fetch {0} failed", uri.getRawUri()));
+        throw RequestFailureException(std::format("Fetch {0} failed", uri.getRawUri()));
     }
 }
 
@@ -92,7 +92,7 @@ std::string HttpClient::get_ca_path() {
 }
 
 std::string HttpClient::get_user_agent() {
-    return fmt::format("ClashSubGenerator/{}.{}.{}-{}", CSG_MAJOR, CSG_MINOR, CSG_PATCH, CSG_RELEASE_INFO);
+    return std::format("ClashSubGenerator/{}.{}.{}-{}", CSG_MAJOR, CSG_MINOR, CSG_PATCH, CSG_RELEASE_INFO);
 }
 
 std::string_view HttpClient::get_proxy() {

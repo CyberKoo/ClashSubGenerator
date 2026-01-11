@@ -1,12 +1,14 @@
 //
 // Created by Kotarou on 2020/8/7.
 //
+#include "config_loader.h"
+
 #include <fstream>
-#include <fmt/format.h>
+#include <format>
+
 #include <yaml-cpp/yaml.h>
 #include <spdlog/spdlog.h>
 
-#include "config_loader.h"
 #include "uri.h"
 #include "hash.h"
 #include "httpclient.h"
@@ -32,10 +34,10 @@ std::string ConfigLoader::load_raw(std::string_view uri, bool local_only, bool u
                 return std::string((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
             }
         } catch (std::exception &e) {
-            throw FileSystemException(fmt::format("Load file {} filed, error: {}", path, e.what()));
+            throw FileSystemException(std::format("Load file {} filed, error: {}", path, e.what()));
         }
 
-        throw FileSystemException(fmt::format("File {} doesn't exist", path));
+        throw FileSystemException(std::format("File {} doesn't exist", path));
     } else {
         return cache_loader(uri_result, use_cache);
     }
@@ -53,7 +55,7 @@ YAML::Node ConfigLoader::load_yaml(std::string_view uri, bool local_only, bool u
             return YAML::LoadFile(path.data());
         }
 
-        throw FileSystemException(fmt::format("File {} doesn't exist", path));
+        throw FileSystemException(std::format("File {} doesn't exist", path));
     } else {
         return YAML::Load(cache_loader(uri_result, use_cache));
     }
@@ -93,5 +95,5 @@ void ConfigLoader::validate_schema(const Uri &uri) {
         }
     }
 
-    throw InvalidURIException(fmt::format("URI {} doesn't have a valid schema", uri.getRawUri()));
+    throw InvalidURIException(std::format("URI {} doesn't have a valid schema", uri.getRawUri()));
 }

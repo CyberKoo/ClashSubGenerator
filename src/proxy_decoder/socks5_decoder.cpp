@@ -1,11 +1,11 @@
 //
 // Created by Kotarou on 2020/6/26.
 //
+#include "socks5_decoder.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <yaml-cpp/yaml.h>
 
-#include "socks5_decoder.h"
 #include "../uri.h"
 #include "../utils.h"
 #include "../exception/unsupported_configuration.h"
@@ -20,7 +20,7 @@ YAML::Node Socks5Decoder::decode_config(const Uri &uri) {
     proxy["type"] = std::string("socks5");
     proxy["name"] = Utils::url_decode(name, true);
     if (name.empty()) {
-        proxy["name"] = fmt::format("socks5_{}", Utils::get_random_string(10));
+        proxy["name"] = std::format("socks5_{}", Utils::get_random_string(10));
     }
 
     if (credentials.size() == 2) {
